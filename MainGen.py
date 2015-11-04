@@ -45,5 +45,7 @@ def GenSource():
 
 if __name__ == '__main__':
     if 0 == GenSource():
-        print 'error: usage: MainGen Python py'
+        print 'usage:'
+        print '    MainGen LiuD py'
+        print '    MainGen Python py'
 

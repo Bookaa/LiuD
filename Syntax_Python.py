@@ -23,8 +23,8 @@ s_tree = '''
 iExpr {
 values(vlst*) : value ^+ ','
 value04(v1,s,v2): item0 ^- (('*'|'/') ('+'|'-') ('>'|'<'|'!='|'=='))
-value05 : value04 'if' value04 'else' value04
-value : value05 | value04
+value05 : +value04 'if' value04 'else' value04
+value : value05
 item0 :: funccall
     | adotb
     | ( LitDouble : NUMBER_DOUBLE )

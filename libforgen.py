@@ -20,7 +20,14 @@ class OutP:
         self.fDone = True
 
 def PythonString(s):
+    if len(s) > 60 and '\n' in s:
+        if '\\' in s and not AnyEscapeChar(s):
+            return "r'''%s'''" % s
+        return "'''%s'''" % s
     return str([s])[1:-1]
+
+def AnyEscapeChar(s):
+    return False
 
 def ToSwiftString(s):
     s0 = ''
@@ -128,7 +135,7 @@ def smarttyp2(s, typ2):
     assert False
 
 
-class Visit_00(liud_sample_visitor_01):
+class Visit_00(LiuD_sample_visitor_01):
     def __init__(self, dic):
         self.dic = dic
     def visit_opt2(self, node):
@@ -253,15 +260,15 @@ class Visit_00(liud_sample_visitor_01):
             if s == 'value05':
                 pass
             node1 = self.dic[s].node
-            if isinstance(node1, liud_stmt_inline):
+            if isinstance(node1, LiuD_stmt_inline):
                 if node1.s == 'dotsth':
                     pass
                 result = node1.v.walkabout(self)
                 if result is None:
                     return None
                 return result
-            elif isinstance(node1, liud_stmt_tax):
-                if isinstance(node1.v, liud_opt2):
+            elif isinstance(node1, LiuD_stmt_tax):
+                if isinstance(node1.v, LiuD_opt2):
                     s = node1.v.s
                     return self.howword(s)
                 return [('v', s)]
@@ -295,7 +302,7 @@ class Visit_00(liud_sample_visitor_01):
                 assert False
         return [r0]
     def visit_basestrn(self, node):
-        if isinstance(node.v, liud_LitName):
+        if isinstance(node.v, LiuD_LitName):
             pass # do nothing
         else:
             return [('s','.s')]
@@ -303,6 +310,15 @@ class Visit_00(liud_sample_visitor_01):
         return [('v', node.v.s)]
     def visit_OtherSyntax(self, node):
         return [('s','.s'),('s','.s'),('v','.v')]
+    def visit_MoreDef(self, node):
+        a1 = []
+        for v in node.vlst:
+            result = v.walkabout(self)
+            if result is not None:
+                a1.extend(result)
+        if a1:
+            return a1
+        return None
 
 class LiudNodeInfo:
     def __init__(self, node, syntax, protcl):
@@ -310,7 +326,7 @@ class LiudNodeInfo:
         self.ign_syntax = syntax
         self.protcl = protcl
 
-class Visit_Gen01(liud_sample_visitor_01):
+class Visit_Gen01(LiuD_sample_visitor_01):
     def __init__(self):
         self.cur_syntax = 'no'
         self.lst0 = [] # only save name, for keep sequence
@@ -340,14 +356,14 @@ class Visit_Gen01(liud_sample_visitor_01):
                 pass
             nodeinfo = self.dic[name]
             node = nodeinfo.node
-            if isinstance(node, liud_stmt_inline):
+            if isinstance(node, LiuD_stmt_inline):
                 if node.vargq is not None:
                     arglst = [node.vargq.s]
                     _, arglst2, arglst3 = self.TryGetArgLst(node.v, arglst)
                 else:
                     arglst, arglst2, arglst3 = self.TryGetArgLst(node.v, [])
                     assert len(arglst) == 1
-            elif isinstance(node, liud_stmt_tax):
+            elif isinstance(node, LiuD_stmt_tax):
                 if node.vq is not None:
                     arglst = []
                     for a in node.vq.vlst:
@@ -429,19 +445,19 @@ class GrammarList:
     def iter_syntax(self):
         for name in self.lst:
             nodeinfo = self.dic[name]
-            if isinstance(nodeinfo.node, liud_stmt_tax):
+            if isinstance(nodeinfo.node, LiuD_stmt_tax):
                 yield nodeinfo
 
     def ifinline(self, name):
         if name not in self.dic:
             return False
         nodeinfo = self.dic[name]
-        return isinstance(nodeinfo.node, liud_stmt_inline)
+        return isinstance(nodeinfo.node, LiuD_stmt_inline)
 
     def handle_LitName(self, node):
-        if not isinstance(node, liud_LitName):
+        if not isinstance(node, LiuD_LitName):
             pass
-        assert isinstance(node, liud_LitName)
+        assert isinstance(node, LiuD_LitName)
         if self.ifinline(node.n):
             return 'self.hdl_%s()' % node.n
         return 'self.handle_%s()' % node.n

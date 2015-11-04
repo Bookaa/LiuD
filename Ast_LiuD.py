@@ -2,7 +2,7 @@
 
 from lib import *
 
-class liud_opt2:
+class LiuD_opt2:
     def __init__(self, s, vlst):
         self.s = s
         self.vlst = vlst
@@ -11,7 +11,7 @@ class liud_opt2:
         return visitor.visit_opt2(self)
 
 
-class liud_choices:
+class LiuD_choices:
     def __init__(self, vlst):
         self.vlst = vlst
 
@@ -19,13 +19,21 @@ class liud_choices:
         return visitor.visit_choices(self)
 
 
-class liud_OtherSyntax:
+class LiuD_MoreDef:
+    def __init__(self, vlst):
+        self.vlst = vlst
+
+    def walkabout(self, visitor):
+        return visitor.visit_MoreDef(self)
+
+
+class LiuD_OtherSyntax:
 
     def walkabout(self, visitor):
         return visitor.visit_OtherSyntax(self)
 
 
-class liud_stringchoice:
+class LiuD_stringchoice:
     def __init__(self, slst):
         self.slst = slst
 
@@ -33,7 +41,7 @@ class liud_stringchoice:
         return visitor.visit_stringchoice(self)
 
 
-class liud_inline:
+class LiuD_inline:
     def __init__(self, v):
         self.v = v
 
@@ -41,7 +49,7 @@ class liud_inline:
         return visitor.visit_inline(self)
 
 
-class liud_serie:
+class LiuD_serie:
     def __init__(self, vlst):
         self.vlst = vlst
 
@@ -49,7 +57,7 @@ class liud_serie:
         return visitor.visit_serie(self)
 
 
-class liud_bracegroup:
+class LiuD_bracegroup:
     def __init__(self, vlst):
         self.vlst = vlst
 
@@ -57,7 +65,7 @@ class liud_bracegroup:
         return visitor.visit_bracegroup(self)
 
 
-class liud_bracechoice:
+class LiuD_bracechoice:
     def __init__(self, vlst):
         self.vlst = vlst
 
@@ -65,7 +73,7 @@ class liud_bracechoice:
         return visitor.visit_bracechoice(self)
 
 
-class liud_ident:
+class LiuD_ident:
     def __init__(self, s):
         self.s = s
 
@@ -73,7 +81,7 @@ class liud_ident:
         return visitor.visit_ident(self)
 
 
-class liud_basestrn:
+class LiuD_basestrn:
     def __init__(self, v):
         self.v = v
 
@@ -81,7 +89,7 @@ class liud_basestrn:
         return visitor.visit_basestrn(self)
 
 
-class liud_ifnext:
+class LiuD_ifnext:
     def __init__(self, slst):
         self.slst = slst
 
@@ -89,7 +97,7 @@ class liud_ifnext:
         return visitor.visit_ifnext(self)
 
 
-class liud_ifnotnext:
+class LiuD_ifnotnext:
     def __init__(self, slst):
         self.slst = slst
 
@@ -97,7 +105,7 @@ class liud_ifnotnext:
         return visitor.visit_ifnotnext(self)
 
 
-class liud_itemq:
+class LiuD_itemq:
     def __init__(self, v):
         self.v = v
 
@@ -105,7 +113,7 @@ class liud_itemq:
         return visitor.visit_itemq(self)
 
 
-class liud_itemd:
+class LiuD_itemd:
     def __init__(self, v):
         self.v = v
 
@@ -113,7 +121,7 @@ class liud_itemd:
         return visitor.visit_itemd(self)
 
 
-class liud_itemp:
+class LiuD_itemp:
     def __init__(self, v):
         self.v = v
 
@@ -121,7 +129,7 @@ class liud_itemp:
         return visitor.visit_itemp(self)
 
 
-class liud_jiad:
+class LiuD_jiad:
     def __init__(self, v1, v2q, v3q, v4):
         self.v1 = v1
         self.v2q = v2q
@@ -132,7 +140,7 @@ class liud_jiad:
         return visitor.visit_jiad(self)
 
 
-class liud_jiap:
+class LiuD_jiap:
     def __init__(self, v1, v2q, v3q, v4):
         self.v1 = v1
         self.v2q = v2q
@@ -143,7 +151,7 @@ class liud_jiap:
         return visitor.visit_jiap(self)
 
 
-class liud_optgroup:
+class LiuD_optgroup:
     def __init__(self, vlst):
         self.vlst = vlst
 
@@ -151,7 +159,7 @@ class liud_optgroup:
         return visitor.visit_optgroup(self)
 
 
-class liud_syntaxdef:
+class LiuD_syntaxdef:
     def __init__(self, n):
         self.n = n
 
@@ -159,7 +167,7 @@ class liud_syntaxdef:
         return visitor.visit_syntaxdef(self)
 
 
-class liud_LitName:
+class LiuD_LitName:
     def __init__(self, n):
         self.n = n
 
@@ -167,7 +175,7 @@ class liud_LitName:
         return visitor.visit_LitName(self)
 
 
-class liud_LitString:
+class LiuD_LitString:
     def __init__(self, s):
         self.s = s
 
@@ -175,7 +183,7 @@ class liud_LitString:
         return visitor.visit_LitString(self)
 
 
-class liud_dot_syntax:
+class LiuD_dot_syntax:
     def __init__(self, n):
         self.n = n
 
@@ -183,7 +191,7 @@ class liud_dot_syntax:
         return visitor.visit_dot_syntax(self)
 
 
-class liud_stmt_inline:
+class LiuD_stmt_inline:
     def __init__(self, s, vargq, v):
         self.s = s
         self.vargq = vargq
@@ -193,7 +201,7 @@ class liud_stmt_inline:
         return visitor.visit_stmt_inline(self)
 
 
-class liud_stmt_tax:
+class LiuD_stmt_tax:
     def __init__(self, s, vq, v):
         self.s = s
         self.vq = vq
@@ -203,7 +211,7 @@ class liud_stmt_tax:
         return visitor.visit_stmt_tax(self)
 
 
-class liud_args:
+class LiuD_args:
     def __init__(self, vlst):
         self.vlst = vlst
 
@@ -211,7 +219,7 @@ class liud_args:
         return visitor.visit_args(self)
 
 
-class liud_arg:
+class LiuD_arg:
     def __init__(self, s, sq):
         self.s = s
         self.sq = sq
@@ -220,7 +228,7 @@ class liud_arg:
         return visitor.visit_arg(self)
 
 
-class liud_protoGroup:
+class LiuD_protoGroup:
     def __init__(self, n, vlst):
         self.n = n
         self.vlst = vlst
@@ -229,16 +237,17 @@ class liud_protoGroup:
         return visitor.visit_protoGroup(self)
 
 
-class liud_Module:
+class LiuD_Module:
     def __init__(self, vlst):
         self.vlst = vlst
 
     def walkabout(self, visitor):
         return visitor.visit_Module(self)
 
-class liud_sample_visitor_00:
+class LiuD_sample_visitor_00:
     def visit_opt2(self, node): pass
     def visit_choices(self, node): pass
+    def visit_MoreDef(self, node): pass
     def visit_OtherSyntax(self, node): pass
     def visit_stringchoice(self, node): pass
     def visit_inline(self, node): pass
@@ -266,11 +275,14 @@ class liud_sample_visitor_00:
     def visit_protoGroup(self, node): pass
     def visit_Module(self, node): pass
 
-class liud_sample_visitor_01:
+class LiuD_sample_visitor_01:
     def visit_opt2(self, node):
         for v in node.vlst:
             v.walkabout(self)
     def visit_choices(self, node):
+        for v in node.vlst:
+            v.walkabout(self)
+    def visit_MoreDef(self, node):
         for v in node.vlst:
             v.walkabout(self)
     def visit_OtherSyntax(self, node):
@@ -347,7 +359,7 @@ class liud_sample_visitor_01:
         for v in node.vlst:
             v.walkabout(self)
 
-class liud_out_visitor_01:
+class LiuD_out_visitor_01:
     def __init__(self, outp):
         self.outp = outp
     def visit_opt2(self, node):
@@ -364,6 +376,11 @@ class liud_out_visitor_01:
                 self.outp.puts('\n    |')
             tem1 = 1
             tem2.walkabout(self)
+    def visit_MoreDef(self, node):
+        self.outp.puts('+')
+        self.outp.lnk()
+        for tem1 in node.vlst:
+            tem1.walkabout(self)
     def visit_OtherSyntax(self, node):
         self.outp.puts('$NewSyntax')
     def visit_stringchoice(self, node):
@@ -529,13 +546,16 @@ class Parser(Parser00):
     
     def handle_STRING(self):
         s = self.handle_Lex(self.lex_STRING)
-        return tostr_liud_STRING(s)
+        return tostr_LiuD_STRING(s)
 
     def hdl_taxvalue(self):
         v = self.handle_opt2()
         if v is not None:
             return v
         v = self.handle_choices()
+        if v is not None:
+            return v
+        v = self.handle_MoreDef()
         if v is not None:
             return v
         return self.handle_OtherSyntax()
@@ -572,7 +592,7 @@ class Parser(Parser00):
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
-        return liud_opt2(s, vlst)
+        return LiuD_opt2(s, vlst)
 
     def handle_choices(self):
         sav0 = self.getpos()
@@ -594,7 +614,25 @@ class Parser(Parser00):
         self.setpos(sav1)
         if len(vlst) == 1:
             return vlst[0]
-        return liud_choices(vlst)
+        return LiuD_choices(vlst)
+
+    def handle_MoreDef(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('+') is None:
+            self.setpos(sav0)
+            return None
+        self.SkipComments(self.ignore_wspace)
+        vlst = []
+        sav1 = self.getpos()
+        while True:
+            v3 = self.hdl_baseitem()
+            if v3 is None:
+                break
+            vlst.append(v3)
+            sav1 = self.getpos()
+            self.SkipComments(self.ignore_wspace)
+        self.setpos(sav1)
+        return LiuD_MoreDef(vlst)
 
     def handle_OtherSyntax(self):
         sav0 = self.getpos()
@@ -602,7 +640,7 @@ class Parser(Parser00):
         if self.handle_OpChar('$NewSyntax') is None:
             self.setpos(sav0)
             return None
-        return liud_OtherSyntax()
+        return LiuD_OtherSyntax()
 
     def hdl_strings(self):
         v = self.handle_stringchoice()
@@ -636,7 +674,7 @@ class Parser(Parser00):
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
-        return liud_stringchoice(slst)
+        return LiuD_stringchoice(slst)
 
     def hdl_taxone(self):
         v = self.handle_inline()
@@ -658,7 +696,7 @@ class Parser(Parser00):
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
-        return liud_inline(v)
+        return LiuD_inline(v)
 
     def handle_serie(self):
         sav0 = self.getpos()
@@ -677,7 +715,7 @@ class Parser(Parser00):
         self.setpos(sav1)
         if len(vlst) == 1:
             return vlst[0]
-        return liud_serie(vlst)
+        return LiuD_serie(vlst)
 
     def hdl_base0(self):
         v = self.handle_bracegroup()
@@ -717,7 +755,7 @@ class Parser(Parser00):
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
-        return liud_bracegroup(vlst)
+        return LiuD_bracegroup(vlst)
 
     def handle_bracechoice(self):
         sav0 = self.getpos()
@@ -745,7 +783,7 @@ class Parser(Parser00):
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
-        return liud_bracechoice(vlst)
+        return LiuD_bracechoice(vlst)
 
     def handle_ident(self):
         sav0 = self.getpos()
@@ -757,7 +795,7 @@ class Parser(Parser00):
         if s is None:
             self.setpos(sav0)
             return None
-        return liud_ident(s)
+        return LiuD_ident(s)
 
     def hdl_base1(self):
         v = self.handle_basestrn()
@@ -776,7 +814,7 @@ class Parser(Parser00):
         if self.handle_OpChar('$') is None:
             self.setpos(sav0)
             return None
-        return liud_basestrn(v)
+        return LiuD_basestrn(v)
 
     def hdl_baseitem(self):
         v = self.handle_syntaxdef()
@@ -834,7 +872,7 @@ class Parser(Parser00):
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
-        return liud_ifnext(slst)
+        return LiuD_ifnext(slst)
 
     def handle_ifnotnext(self):
         sav0 = self.getpos()
@@ -862,7 +900,7 @@ class Parser(Parser00):
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
-        return liud_ifnotnext(slst)
+        return LiuD_ifnotnext(slst)
 
     def handle_itemq(self):
         sav0 = self.getpos()
@@ -873,7 +911,7 @@ class Parser(Parser00):
         if self.handle_OpChar('?') is None:
             self.setpos(sav0)
             return None
-        return liud_itemq(v)
+        return LiuD_itemq(v)
 
     def handle_itemd(self):
         sav0 = self.getpos()
@@ -884,7 +922,7 @@ class Parser(Parser00):
         if self.handle_OpChar('*') is None:
             self.setpos(sav0)
             return None
-        return liud_itemd(v)
+        return LiuD_itemd(v)
 
     def handle_itemp(self):
         sav0 = self.getpos()
@@ -895,7 +933,7 @@ class Parser(Parser00):
         if self.handle_OpChar('+') is None:
             self.setpos(sav0)
             return None
-        return liud_itemp(v)
+        return LiuD_itemp(v)
 
     def handle_jiad(self):
         sav0 = self.getpos()
@@ -922,7 +960,7 @@ class Parser(Parser00):
         if v4 is None:
             self.setpos(sav0)
             return None
-        return liud_jiad(v1, v2q, v3q, v4)
+        return LiuD_jiad(v1, v2q, v3q, v4)
 
     def handle_jiap(self):
         sav0 = self.getpos()
@@ -949,7 +987,7 @@ class Parser(Parser00):
         if v4 is None:
             self.setpos(sav0)
             return None
-        return liud_jiap(v1, v2q, v3q, v4)
+        return LiuD_jiap(v1, v2q, v3q, v4)
 
     def handle_optgroup(self):
         sav0 = self.getpos()
@@ -974,7 +1012,7 @@ class Parser(Parser00):
         if self.handle_OpChar(']') is None:
             self.setpos(sav0)
             return None
-        return liud_optgroup(vlst)
+        return LiuD_optgroup(vlst)
 
     def handle_syntaxdef(self):
         sav0 = self.getpos()
@@ -988,7 +1026,7 @@ class Parser(Parser00):
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
-        return liud_syntaxdef(n)
+        return LiuD_syntaxdef(n)
 
     def handle_LitName(self):
         sav0 = self.getpos()
@@ -996,7 +1034,7 @@ class Parser(Parser00):
         if n is None:
             self.setpos(sav0)
             return None
-        return liud_LitName(n)
+        return LiuD_LitName(n)
 
     def handle_LitString(self):
         sav0 = self.getpos()
@@ -1004,7 +1042,7 @@ class Parser(Parser00):
         if s is None:
             self.setpos(sav0)
             return None
-        return liud_LitString(s)
+        return LiuD_LitString(s)
 
     def hdl_stmt(self):
         sav0 = self.getpos()
@@ -1040,7 +1078,7 @@ class Parser(Parser00):
         if n is None:
             self.setpos(sav0)
             return None
-        return liud_dot_syntax(n)
+        return LiuD_dot_syntax(n)
 
     def handle_stmt_inline(self):
         sav0 = self.getpos()
@@ -1075,7 +1113,7 @@ class Parser(Parser00):
         if v is None:
             self.setpos(sav0)
             return None
-        return liud_stmt_inline(s, vargq, v)
+        return LiuD_stmt_inline(s, vargq, v)
 
     def handle_stmt_tax(self):
         sav0 = self.getpos()
@@ -1110,7 +1148,7 @@ class Parser(Parser00):
         if v is None:
             self.setpos(sav0)
             return None
-        return liud_stmt_tax(s, vq, v)
+        return LiuD_stmt_tax(s, vq, v)
 
     def handle_args(self):
         sav0 = self.getpos()
@@ -1130,7 +1168,7 @@ class Parser(Parser00):
             self.setpos(sav0)
             return None
         self.setpos(sav1)
-        return liud_args(vlst)
+        return LiuD_args(vlst)
 
     def handle_arg(self):
         sav0 = self.getpos()
@@ -1141,7 +1179,7 @@ class Parser(Parser00):
         sq = self.handle_OpChar('?')
         if sq is None:
             sq = self.handle_OpChar('*')
-        return liud_arg(s, sq)
+        return LiuD_arg(s, sq)
 
     def handle_protoGroup(self):
         sav0 = self.getpos()
@@ -1168,7 +1206,7 @@ class Parser(Parser00):
         if self.handle_OpChar('}') is None:
             self.setpos(sav0)
             return None
-        return liud_protoGroup(n, vlst)
+        return LiuD_protoGroup(n, vlst)
 
     def handle_Module(self):
         self.SkipComments(self.ignore_crlf)
@@ -1187,9 +1225,9 @@ class Parser(Parser00):
         if self.handle_ENDMARKER() is None:
             self.setpos(sav0)
             return None
-        return liud_Module(vlst)
+        return LiuD_Module(vlst)
 
-def Test_Parse_liud(srctxt):
+def Test_Parse_LiuD(srctxt):
     parser = Parser(srctxt)
     mod = parser.handle_Module()
     if mod is None:
@@ -1202,18 +1240,19 @@ def Test_Parse_liud(srctxt):
     return mod
 
 
-def Test_Out_liud(mod):
+def Test_Out_LiuD(mod):
     outp = OutPrt()
-    the = liud_out_visitor_01(outp)
+    the = LiuD_out_visitor_01(outp)
     mod.walkabout(the)
     outp.newline()
 
-s_sample_liud = '''
+s_sample_LiuD = '''
 .syntax wspace
 
-iLiuDExpr {
+iExpr {
 taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
     | ( choices(vlst*) : taxone -(crlf) ^+ '|' )
+    | ( MoreDef : '+' baseitem* )
     | ( OtherSyntax : '$NewSyntax' )
     strings :: ( stringchoice(slst*) : '(' STRING ^+ '|' ')' )
         | LitString
@@ -1258,7 +1297,7 @@ Module(vlst*) : stmt* ENDMARKER$
 '''
 
 if __name__ == '__main__':
-    mod = Test_Parse_liud(s_sample_liud)
+    mod = Test_Parse_LiuD(s_sample_LiuD)
     if mod :
-        Test_Out_liud(mod)
+        Test_Out_LiuD(mod)
     

@@ -3,13 +3,13 @@
 from libforgen import *
 
 def GenPython01(mod):
-    assert isinstance(mod, liud_Module)
+    assert isinstance(mod, LiuD_Module)
     visit = Visit_Gen01()
     mod.walkabout(visit)
     grmlst = visit.AllLst()
     return grmlst
 
-class Visit_Gen02(liud_sample_visitor_01):
+class Visit_Gen02(LiuD_sample_visitor_01):
     def __init__(self, cur_syntax, arglst, grmlst):
         self.grmlst = grmlst
         self.cur_syntax = cur_syntax
@@ -17,6 +17,7 @@ class Visit_Gen02(liud_sample_visitor_01):
         self.argno = 0
         self.flgcomment = False
         self.savno = 1
+        self.retv = 'None'
     def skipcomment(self):
         outp = OutP(); outp.down(); outp.down()
         if self.flgcomment and self.cur_syntax != 'no':
@@ -33,8 +34,8 @@ class Visit_Gen02(liud_sample_visitor_01):
         self.skipcomment()
 
         savname = 'sav%d' % self.savno; self.savno += 1
-        assert isinstance(node.v1, liud_LitName)
-        assert isinstance(node.v4, (liud_LitString, liud_ident))
+        assert isinstance(node.v1, LiuD_LitName)
+        assert isinstance(node.v4, (LiuD_LitString, LiuD_ident))
         vname, vtyp, vtyp2 = self.arglst[self.argno]; self.argno += 1
         outp.prtln('%s = []' % vname)
         outp.prtln('%s = self.getpos()' % savname)
@@ -48,7 +49,7 @@ class Visit_Gen02(liud_sample_visitor_01):
             outp.prtln('    self.SkipComments(self.ignore_%s)' % node.v2q.s)
         elif self.cur_syntax != 'no':
             outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
-        if isinstance(node.v4, liud_LitString):
+        if isinstance(node.v4, LiuD_LitString):
             outp.prtln('    if not self.handle_OpChar(%s):' % PythonString(node.v4.s))
         else:
             outp.prtln('    if not self.handle_Ident(%s, self.ignore_%s):' % (PythonString(node.v4.s), self.cur_syntax))
@@ -59,7 +60,7 @@ class Visit_Gen02(liud_sample_visitor_01):
             outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
         outp.prtln('self.setpos(%s)' % savname)
     def handle_LitName(self, node):
-        assert isinstance(node, liud_LitName)
+        assert isinstance(node, LiuD_LitName)
         if self.grmlst.ifinline(node.n):
             return 'self.hdl_%s()' % node.n
         return 'self.handle_%s()' % node.n
@@ -69,12 +70,12 @@ class Visit_Gen02(liud_sample_visitor_01):
         self.skipcomment()
 
         savname = 'sav%d' % self.savno; self.savno += 1
-        assert isinstance(node.v1, liud_LitName)
-        assert isinstance(node.v4, (liud_LitString, liud_ident, liud_basestrn, liud_LitName))
+        assert isinstance(node.v1, LiuD_LitName)
+        assert isinstance(node.v4, (LiuD_LitString, LiuD_ident, LiuD_basestrn, LiuD_LitName))
         vname, vtyp, vtyp2 = self.arglst[self.argno]; self.argno += 1
         outp.prtln('%s = []' % vname)
         sav2name = None
-        if isinstance(node.v4, liud_LitName):
+        if isinstance(node.v4, LiuD_LitName):
             assert node.v4.n in base_def
             v2name = self.arglst[self.argno][0]; self.argno += 1
             outp.prtln('%s = []' % v2name)
@@ -95,17 +96,17 @@ class Visit_Gen02(liud_sample_visitor_01):
             outp.prtln('    self.SkipComments(self.ignore_%s)' % node.v2q.n)
         elif self.cur_syntax != 'no':
             outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
-        if isinstance(node.v4, liud_LitString):
+        if isinstance(node.v4, LiuD_LitString):
             outp.prtln('    if not self.handle_OpChar(%s):' % PythonString(node.v4.s))
-        elif isinstance(node.v4, liud_LitName):
+        elif isinstance(node.v4, LiuD_LitName):
             name = node.v4.n
             assert name in base_def
             outp.prtln('    %s = self.handle_%s()' % (sav2name, name))
             outp.prtln('    if %s is None:' % sav2name)
-            #assert isinstance(self.grmlst.dic[name][0], liud_stmt_tax)
+            #assert isinstance(self.grmlst.dic[name][0], LiuD_stmt_tax)
             #assert False
-        elif isinstance(node.v4, liud_basestrn):
-            assert isinstance(node.v4.v, liud_LitName)
+        elif isinstance(node.v4, LiuD_basestrn):
+            assert isinstance(node.v4.v, LiuD_LitName)
             outp.prtln('    if %s is None:' % self.handle_LitName(node.v4.v))
         else:
             outp.prtln('    if not self.handle_Ident(%s, self.ignore_%s):' % (PythonString(node.v4.s), self.cur_syntax))
@@ -132,7 +133,7 @@ class Visit_Gen02(liud_sample_visitor_01):
             outp.prtln('%s = self.handle_%s()' % (vname, node.n))
         outp.prtln('if %s is None:' % vname)
         outp.prtln('    self.setpos(sav0)')
-        outp.prtln('    return None')
+        outp.prtln('    return %s' % self.retv)
 
     def visit_syntaxdef(self, node):
         if node.n != 'no':
@@ -148,15 +149,15 @@ class Visit_Gen02(liud_sample_visitor_01):
             outp.prtln('self.SkipComments(self.ignore_%s)' % self.cur_syntax)
         self.flgcomment = True
 
-        if isinstance(node.v, liud_LitName):
+        if isinstance(node.v, LiuD_LitName):
             vname = self.arglst[self.argno][0]; self.argno += 1
             outp.prtln('%s = %s' % (vname, self.handle_LitName(node.v)))
             if savflg:
                 outp.prtln('if %s is None:' % vname)
                 outp.prtln('    self.setpos(%s)' % savname)
-        elif isinstance(node.v, liud_basestrn):
+        elif isinstance(node.v, LiuD_basestrn):
             v2 = node.v.v
-            if isinstance(v2, liud_stringchoice):
+            if isinstance(v2, LiuD_stringchoice):
                 vname = self.arglst[self.argno][0]; self.argno += 1
                 no = 0
                 for s in v2.slst:
@@ -166,19 +167,19 @@ class Visit_Gen02(liud_sample_visitor_01):
                         outp.prtln('if %s is None:' % vname)
                         outp.prtln('    %s = self.%s' % (vname, Word_or_Symbol(s)))
                     no += 1
-            elif isinstance(v2, liud_LitString):
+            elif isinstance(v2, LiuD_LitString):
                 vname = self.arglst[self.argno][0]; self.argno += 1
                 outp.prtln('%s = self.%s' % (vname, Word_or_Symbol(v2.s)))
-            elif isinstance(v2, liud_LitName):
+            elif isinstance(v2, LiuD_LitName):
                 outp.prtln('%s' % self.handle_LitName(v2))
             else:
                 assert False
             if savflg:
                 outp.prtln('if %s is None:' % vname)
                 outp.prtln('    self.setpos(%s)' % savname)
-        elif isinstance(node.v, liud_ident):
+        elif isinstance(node.v, LiuD_ident):
             outp.prtln('self.handle_Ident(%s, self.ignore_%s)' % (node.v.s, self.cur_syntax))
-        elif isinstance(node.v, liud_LitString):
+        elif isinstance(node.v, LiuD_LitString):
             outp.prtln('self.%s' % Word_or_Symbol(node.v.s))
         else:
             assert False
@@ -186,7 +187,7 @@ class Visit_Gen02(liud_sample_visitor_01):
         outp = OutP(); outp.down(); outp.down()
         self.skipcomment()
 
-        if isinstance(node.v, liud_LitName):
+        if isinstance(node.v, LiuD_LitName):
             vname,vtyp,vtyp2 = self.arglst[self.argno]; self.argno += 1
             savname = 'sav%d' % self.savno; self.savno += 1
             outp.prtln('%s = []' % vname)
@@ -200,8 +201,8 @@ class Visit_Gen02(liud_sample_visitor_01):
             if self.cur_syntax != 'no':
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
             outp.prtln('self.setpos(%s)' % savname)
-        elif isinstance(node.v, liud_basestrn):
-            if isinstance(node.v.v, liud_LitName):
+        elif isinstance(node.v, LiuD_basestrn):
+            if isinstance(node.v.v, LiuD_LitName):
                 if self.cur_syntax == 'no':
                     outp.prtln('while self.handle_%s() is not None:' % node.v.v.s)
                     outp.prtln('    pass')
@@ -227,7 +228,7 @@ class Visit_Gen02(liud_sample_visitor_01):
         self.skipcomment()
 
         savname = 'sav%d' % self.savno; self.savno += 1
-        assert isinstance(node.v, liud_LitName)
+        assert isinstance(node.v, LiuD_LitName)
         vname, vtyp, vtyp2 = self.arglst[self.argno]; self.argno += 1
         outp.prtln('%s = []' % vname)
         outp.prtln('%s = self.getpos()' % savname)
@@ -253,7 +254,7 @@ class Visit_Gen02(liud_sample_visitor_01):
         lst = []
         no = False
         for v in node.vlst:
-            if isinstance(v, liud_LitString):
+            if isinstance(v, LiuD_LitString):
                 if no:
                     outp.prtln('if flag:')
                     outp.down()
@@ -263,7 +264,7 @@ class Visit_Gen02(liud_sample_visitor_01):
                 outp.prtln('flag = False', 1)
                 if no:
                     outp.up()
-            elif isinstance(v, liud_LitName):
+            elif isinstance(v, LiuD_LitName):
                 vname,vtyp,vtyp2 = self.arglst[self.argno]; self.argno += 1
                 lst.append(vname)
                 if no:
@@ -276,7 +277,7 @@ class Visit_Gen02(liud_sample_visitor_01):
                 outp.prtln('flag = False', 1)
                 if no:
                     outp.up()
-            elif isinstance(v, liud_ident):
+            elif isinstance(v, LiuD_ident):
                 outp.prtln('if not self.handle_Ident(%s, self.ignore_%s):' % (PythonString(v.s), self.cur_syntax))
                 outp.prtln('flag = False', 1)
             else:
@@ -293,7 +294,7 @@ class Visit_Gen02(liud_sample_visitor_01):
 
         outp.prtln('if self.%s is None:' % Word_or_Symbol(node.s))
         outp.prtln('    self.setpos(sav0)')
-        outp.prtln('    return None')
+        outp.prtln('    return %s' % self.retv)
     def visit_bracechoice(self, node):
         outp = OutP(); outp.down(); outp.down()
         self.skipcomment()
@@ -301,7 +302,7 @@ class Visit_Gen02(liud_sample_visitor_01):
         vname = None
         first = True
         for v in node.vlst:
-            if isinstance(v, liud_LitName):
+            if isinstance(v, LiuD_LitName):
                 pass
                 if first:
                     vname,vtyp,vtyp2 = self.arglst[self.argno]; self.argno += 1
@@ -310,7 +311,7 @@ class Visit_Gen02(liud_sample_visitor_01):
                     outp.prtln('if %s is None:' % vname)
                     outp.prtln('    %s = %s' % (vname, self.handle_LitName(v)))
 
-            elif isinstance(v, liud_inline):
+            elif isinstance(v, LiuD_inline):
                 if first:
                     vname = self.arglst[self.argno]; self.argno += 1
                     outp.prtln('%s = self.handle_%s()' % (vname, v.v.s))
@@ -328,11 +329,11 @@ class Visit_Gen02(liud_sample_visitor_01):
         outp = OutP(); outp.down(); outp.down()
         self.skipcomment()
 
-        if isinstance(node.v, liud_LitName):
+        if isinstance(node.v, LiuD_LitName):
             outp.prtln('if self.handle_%s() is None:' % node.v.n)
             outp.prtln('    self.setpos(sav0)')
             outp.prtln('    return None')
-        elif isinstance(node.v, liud_stringchoice):
+        elif isinstance(node.v, LiuD_stringchoice):
             vname = None
             first = True
             for s in node.v.slst:
@@ -415,6 +416,26 @@ class Visit_Gen02(liud_sample_visitor_01):
         self.skipcomment()
         outp.prtln('pass')
 
+    def visit_MoreDef(self, node):
+        outp = OutP(); outp.down(); outp.down()
+        first = node.vlst[0]
+        if isinstance(first, LiuD_LitName):
+            vname,vtyp,vtyp2 = self.arglst[self.argno]; self.argno += 1
+            outp.prtln('%s = %s' % (vname, self.handle_LitName(first)))
+            outp.prtln('if %s is None:' % vname)
+            outp.prtln('    return None')
+            outp.prtln('sav0 = self.getpos()')
+            self.skipcomment()
+            self.retv = vname
+            for v in node.vlst[1:]:
+                v.walkabout(self)
+            self.retv = 'None'
+            return
+
+        assert(False)
+        for v in node.vlst:
+            v.walkabout(self)
+
 def Word_or_Symbol(s):
     if (s[0], s[-1]) == ("'", "'"):
         s = s[1:-1]
@@ -483,7 +504,7 @@ class Parser(Parser00):
         if node.s == 'stringchoice':
             pass
 
-        if isinstance(node, liud_stmt_inline):
+        if isinstance(node, LiuD_stmt_inline):
             if IsTrailer(node, grmlst):
                 continue
             PrtStmtInline(node, arglst, ignoresyntax, grmlst)
@@ -499,10 +520,10 @@ class Parser(Parser00):
         if not arglst:
             PrtNoArg(node, ignoresyntax, grmlst)
             continue
-        if isinstance(node.v, liud_opt2):
+        if isinstance(node.v, LiuD_opt2):
             PrtOpt2(node, arglst, ignoresyntax, grmlst)
             continue
-        elif isinstance(node.v, liud_choices):
+        elif isinstance(node.v, LiuD_choices):
             value = node.v
             visit = Visit_Gen02(ignoresyntax, arglst, grmlst)
             outp.prtln('    sav0 = self.getpos()')
@@ -516,9 +537,10 @@ class Parser(Parser00):
         else:
             value = node.v
             visit = Visit_Gen02(ignoresyntax, arglst, grmlst)
-            outp.prtln('    sav0 = self.getpos()')
+            if not isinstance(value, LiuD_MoreDef):
+                outp.prtln('    sav0 = self.getpos()')
             value.walkabout(visit)
-            if isinstance(value, (liud_jiap, liud_itemp)):
+            if isinstance(value, (LiuD_jiap, LiuD_itemp)):
                 assert len(arglst) == 1
                 outp.prtln('    if len(%s) == 1:' % arglst[0][0])
                 outp.prtln('    return %s[0]' % arglst[0][0], 1)
@@ -537,13 +559,13 @@ def PrtStmtInline(node, arglst, ignoresyntax, grmlst):
 
     outp.prtln('def hdl_%s(self):' % node.s)
     outp.down()
-    if isinstance(node.v, liud_choices):
+    if isinstance(node.v, LiuD_choices):
         if argtyp2 in ('slst','nlst','vlst'):
             outp.prtln('%s = []' % argname)
         PreDone = False
         for (i, v) in enumerate(node.v.vlst):
             blast = (i == len(node.v.vlst) - 1)
-            if isinstance(v, liud_serie):
+            if isinstance(v, LiuD_serie):
                 if not PreDone:
                     outp.prtln('sav0 = self.getpos()')
                     PreDone = True
@@ -554,7 +576,7 @@ def PrtStmtInline(node, arglst, ignoresyntax, grmlst):
                     outp.prtln('if not flag:')
                     outp.prtln('    return None')
                     outp.prtln('return %s' % argname)
-            elif isinstance(v, liud_jiap):
+            elif isinstance(v, LiuD_jiap):
                 if not PreDone:
                     outp.prtln('sav0 = self.getpos()')
                     PreDone = True
@@ -564,14 +586,14 @@ def PrtStmtInline(node, arglst, ignoresyntax, grmlst):
                     outp.prtln('if not flag:')
                     outp.prtln('    return None')
                     outp.prtln('return %s' % argname)
-            elif isinstance(v, liud_inline):
+            elif isinstance(v, LiuD_inline):
                 if blast:
                     outp.prtln('return self.handle_%s()' % v.v.s)
                     continue
                 outp.prtln('%s = self.handle_%s()' % (argname, v.v.s))
                 outp.prtln('if %s is not None:' % argname)
                 outp.prtln('return %s' % argname, 1)
-            elif isinstance(v, liud_LitName):
+            elif isinstance(v, LiuD_LitName):
                 if blast:
                     outp.prtln('return %s' % grmlst.handle_LitName(v))
                     continue
@@ -582,7 +604,7 @@ def PrtStmtInline(node, arglst, ignoresyntax, grmlst):
                 assert False
 
         return
-    if isinstance(node.v, liud_serie):
+    if isinstance(node.v, LiuD_serie):
         value = node.v
         visit = Visit_Gen02(ignoresyntax, arglst, grmlst)
         outp.prtln('sav0 = self.getpos()')
@@ -593,7 +615,7 @@ def PrtStmtInline(node, arglst, ignoresyntax, grmlst):
         #outp.prtln('    return None')
         outp.prtln('return %s' % argname)
         return
-    if isinstance(node.v, liud_jiap):
+    if isinstance(node.v, LiuD_jiap):
         value = node.v
         visit = Visit_Gen02(ignoresyntax, arglst, grmlst)
         outp.prtln('sav0 = self.getpos()')
@@ -612,7 +634,7 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
     lst = []
     no = False
     for v in nodelst:
-        if isinstance(v, liud_LitString):
+        if isinstance(v, LiuD_LitString):
             if no:
                 outp.prtln('if flag:')
                 outp.down()
@@ -622,7 +644,7 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
             outp.prtln('flag = False', 1)
             if no:
                 outp.up()
-        elif isinstance(v, liud_LitName):
+        elif isinstance(v, LiuD_LitName):
             vname = arglst[argno]; argno += 1
             lst.append(vname)
             if no:
@@ -635,10 +657,10 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
             outp.prtln('flag = False', 1)
             if no:
                 outp.up()
-        elif isinstance(v, liud_ident):
+        elif isinstance(v, LiuD_ident):
             outp.prtln('if not self.handle_Ident(%s, self.ignore_%s):' % (PythonString(v.s), self.cur_syntax))
             outp.prtln('flag = False', 1)
-        elif isinstance(v, liud_jiad):
+        elif isinstance(v, LiuD_jiad):
             vname = arglst[argno][0]; argno += 1
             lst.append(vname)
             if no:
@@ -647,8 +669,8 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
                 outp.prtln('self.SkipComments(self.ignore_%s)' % cur_syntax)
             node = v
             savname = 'sav%d' % savno; savno += 1
-            assert isinstance(node.v1, liud_LitName)
-            assert isinstance(node.v4, (liud_LitString, liud_ident, liud_basestrn))
+            assert isinstance(node.v1, LiuD_LitName)
+            assert isinstance(node.v4, (LiuD_LitString, LiuD_ident, LiuD_basestrn))
             outp.prtln('%s = self.getpos()' % savname)
             outp.prtln('while True:')
             outp.prtln('    v3 = self.handle_%s()' % node.v1.n)
@@ -660,10 +682,10 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % node.v2q.s)
             elif cur_syntax != 'no':
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % cur_syntax)
-            if isinstance(node.v4, liud_LitString):
+            if isinstance(node.v4, LiuD_LitString):
                 outp.prtln('    if not self.handle_OpChar(%s):' % PythonString(node.v4.s))
-            elif isinstance(node.v4, liud_basestrn):
-                assert isinstance(node.v4.v, liud_LitName)
+            elif isinstance(node.v4, LiuD_basestrn):
+                assert isinstance(node.v4.v, LiuD_LitName)
                 outp.prtln('    if self.handle_%s() is None:' % node.v1.s)
             else:
                 outp.prtln('    if not self.handle_Ident(%s, self.ignore_%s):' % (PythonString(node.v4.s), self.cur_syntax))
@@ -675,7 +697,7 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
             outp.prtln('self.setpos(%s)' % savname)
             if no:
                 outp.up()
-        elif isinstance(v, liud_jiap):
+        elif isinstance(v, LiuD_jiap):
             vname = arglst[argno][0]; argno += 1
             lst.append(vname)
             if no:
@@ -684,8 +706,8 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
                 outp.prtln('self.SkipComments(self.ignore_%s)' % cur_syntax)
             node = v
             savname = 'sav%d' % savno; savno += 1
-            assert isinstance(node.v1, liud_LitName)
-            assert isinstance(node.v4, (liud_LitString, liud_ident, liud_basestrn))
+            assert isinstance(node.v1, LiuD_LitName)
+            assert isinstance(node.v4, (LiuD_LitString, LiuD_ident, LiuD_basestrn))
             outp.prtln('%s = self.getpos()' % savname)
             outp.prtln('while True:')
             outp.prtln('    v3 = self.handle_%s()' % node.v1.n)
@@ -697,10 +719,10 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % node.v2q.s)
             elif cur_syntax != 'no':
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % cur_syntax)
-            if isinstance(node.v4, liud_LitString):
+            if isinstance(node.v4, LiuD_LitString):
                 outp.prtln('    if not self.handle_OpChar(%s):' % PythonString(node.v4.s))
-            elif isinstance(node.v4, liud_basestrn):
-                assert isinstance(node.v4.v, liud_LitName)
+            elif isinstance(node.v4, LiuD_basestrn):
+                assert isinstance(node.v4.v, LiuD_LitName)
                 outp.prtln('    if self.handle_%s() is None:' % node.v1.s)
             else:
                 outp.prtln('    if not self.handle_Ident(%s, self.ignore_%s):' % (PythonString(node.v4.s), self.cur_syntax))
@@ -715,13 +737,13 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
             outp.prtln('    self.setpos(%s)' % savname)
             if no:
                 outp.up()
-        elif isinstance(v, liud_basestrn):
+        elif isinstance(v, LiuD_basestrn):
             if no:
                 outp.prtln('if flag:')
                 outp.down()
                 outp.prtln('self.SkipComments(self.ignore_%s)' % cur_syntax)
 
-            if isinstance(v.v, liud_LitName):
+            if isinstance(v.v, LiuD_LitName):
                 outp.prtln('if self.handle_%s() is None:' % v.v.s)
                 outp.prtln('flag = False', 1)
             else:
@@ -761,7 +783,7 @@ def PrtOpt2(node, arglst, ignoresyntax, grmlst):
     outp = OutP(); outp.down()
     #print '    def handle_%s(self):' % node.s
     #outp.prtln('    v = %s' % grmlst.handle_LitName(node.v))
-    if node.v.s in grmlst.dic and isinstance(grmlst.dic[node.v.s].node, liud_stmt_inline):
+    if node.v.s in grmlst.dic and isinstance(grmlst.dic[node.v.s].node, LiuD_stmt_inline):
         s9 = 'self.hdl_%s()' % node.v.s
     else:
         s9 = 'self.handle_%s()' % node.v.s
@@ -774,7 +796,7 @@ def PrtOpt2(node, arglst, ignoresyntax, grmlst):
     no = 0
     for v in node.v.vlst:
         no += 1
-        if isinstance(v, liud_stringchoice):
+        if isinstance(v, LiuD_stringchoice):
             s7 = ', '.join([PythonString(s) for s in v.slst])
             outp.prtln("")
             outp.prtln('def step%d_%s(self, v1):' % (no, node.s))
@@ -805,11 +827,11 @@ def PrtTrailer(node, arglst, ignoresyntax, grmlst):
     outp = OutP(); outp.down()
     outp.prtln('def handle_%s(self, %s):' % (node.s, arglst[0][0]))
     outp.down()
-    assert not isinstance(node.v, liud_choices)
+    assert not isinstance(node.v, LiuD_choices)
     vserie = node.v
     visit = Visit_Gen02(ignoresyntax, arglst, grmlst)
     outp.prtln('sav0 = self.getpos()')
-    assert isinstance(vserie, liud_serie)
+    assert isinstance(vserie, LiuD_serie)
 
     visit.flgcomment = True
     visit.argno += 1
@@ -821,27 +843,27 @@ def PrtTrailer(node, arglst, ignoresyntax, grmlst):
     assert visit.argno == len(arglst)
 
 def IsTrailer(node, grmlst):
-    if not isinstance(node.v, liud_choices):
+    if not isinstance(node.v, LiuD_choices):
         return False
     basenode = None
     trailer = []
     for v in node.v.vlst:
-        if isinstance(v, liud_inline):
+        if isinstance(v, LiuD_inline):
             v3 = v.v
             value = v3.v
-            if isinstance(value, liud_choices):
+            if isinstance(value, LiuD_choices):
                 return False
             theserie = value
             if v3.s.startswith('trailer'):
                 first = theserie.vlst[0]
-                assert isinstance(first, liud_LitName) and first.n == node.s
+                assert isinstance(first, LiuD_LitName) and first.n == node.s
                 trailer.append(v3)
             else:
                 if basenode is not None:
                     return False
                 basenode = v3
 
-        elif isinstance(v, liud_LitName):
+        elif isinstance(v, LiuD_LitName):
             if basenode is not None:
                 return False
             basenode = v
@@ -893,7 +915,7 @@ def Test_Out_%s(mod):
     outp.newline()
 ''' % (SynName, SynName)
 
-    print "s_sample_%s = '''%s'''" % (SynName, s_sample)
+    print "s_sample_%s = %s" % (SynName, PythonString(s_sample))
 
     print '''
 if __name__ == '__main__':
@@ -1014,7 +1036,7 @@ def TestSave():
         return
 
     saver = Saver()
-    the = liud_sample_save(saver)
+    the = LiuD_sample_save(saver)
     mod.walkabout(the)
 
 def CheckOrIsInstance(nodes, name, lst):
