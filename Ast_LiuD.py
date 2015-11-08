@@ -73,6 +73,23 @@ class LiuD_bracechoice:
         return visitor.visit_bracechoice(self)
 
 
+class LiuD_BoolChoice:
+    def __init__(self, s1, s2):
+        self.s1 = s1
+        self.s2 = s2
+
+    def walkabout(self, visitor):
+        return visitor.visit_BoolChoice(self)
+
+
+class LiuD_BoolIf:
+    def __init__(self, s):
+        self.s = s
+
+    def walkabout(self, visitor):
+        return visitor.visit_BoolIf(self)
+
+
 class LiuD_ident:
     def __init__(self, s):
         self.s = s
@@ -254,6 +271,8 @@ class LiuD_sample_visitor_00:
     def visit_serie(self, node): pass
     def visit_bracegroup(self, node): pass
     def visit_bracechoice(self, node): pass
+    def visit_BoolChoice(self, node): pass
+    def visit_BoolIf(self, node): pass
     def visit_ident(self, node): pass
     def visit_basestrn(self, node): pass
     def visit_ifnext(self, node): pass
@@ -300,6 +319,10 @@ class LiuD_sample_visitor_01:
     def visit_bracechoice(self, node):
         for v in node.vlst:
             v.walkabout(self)
+    def visit_BoolChoice(self, node):
+        pass
+    def visit_BoolIf(self, node):
+        pass
     def visit_ident(self, node):
         pass
     def visit_basestrn(self, node):
@@ -412,6 +435,16 @@ class LiuD_out_visitor_01:
                 self.outp.puts('|')
             tem1 = 1
             tem2.walkabout(self)
+        self.outp.puts(')')
+    def visit_BoolChoice(self, node):
+        self.outp.puts('Bool(')
+        self.outp.puts(node.s1)
+        self.outp.puts(',')
+        self.outp.puts(node.s2)
+        self.outp.puts(')')
+    def visit_BoolIf(self, node):
+        self.outp.puts('Bool(')
+        self.outp.puts(node.s)
         self.outp.puts(')')
     def visit_ident(self, node):
         self.outp.puts(node.s)
@@ -595,25 +628,23 @@ class Parser(Parser00):
         return LiuD_opt2(s, vlst)
 
     def handle_choices(self):
-        sav0 = self.getpos()
-        vlst = []
-        sav1 = self.getpos()
+        tem1 = self.hdl_taxone()
+        if tem1 is None:
+            return None
+        vlst = [tem1]
         while True:
-            v3 = self.hdl_taxone()
-            if v3 is None:
-                break
-            vlst.append(v3)
-            sav1 = self.getpos()
+            sav0 = self.getpos()
             self.SkipComments(self.ignore_crlf)
             if not self.handle_OpChar('|'):
                 break
             self.SkipComments(self.ignore_wspace)
-        if not vlst:
-            self.setpos(sav0)
-            return None
-        self.setpos(sav1)
+            v3 = self.hdl_taxone()
+            if v3 is None:
+                break
+            vlst.append(v3)
+        self.setpos(sav0)
         if len(vlst) == 1:
-            return vlst[0]
+            return tem1
         return LiuD_choices(vlst)
 
     def handle_MoreDef(self):
@@ -699,22 +730,20 @@ class Parser(Parser00):
         return LiuD_inline(v)
 
     def handle_serie(self):
-        sav0 = self.getpos()
-        vlst = []
-        sav1 = self.getpos()
+        tem1 = self.hdl_baseitem()
+        if tem1 is None:
+            return None
+        vlst = [tem1]
         while True:
+            sav0 = self.getpos()
+            self.SkipComments(self.ignore_wspace)
             v3 = self.hdl_baseitem()
             if v3 is None:
                 break
             vlst.append(v3)
-            sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
-        if not vlst:
-            self.setpos(sav0)
-            return None
-        self.setpos(sav1)
+        self.setpos(sav0)
         if len(vlst) == 1:
-            return vlst[0]
+            return tem1
         return LiuD_serie(vlst)
 
     def hdl_base0(self):
@@ -722,6 +751,12 @@ class Parser(Parser00):
         if v is not None:
             return v
         v = self.handle_bracechoice()
+        if v is not None:
+            return v
+        v = self.handle_BoolChoice()
+        if v is not None:
+            return v
+        v = self.handle_BoolIf()
         if v is not None:
             return v
         v = self.handle_LitName()
@@ -784,6 +819,47 @@ class Parser(Parser00):
             self.setpos(sav0)
             return None
         return LiuD_bracechoice(vlst)
+
+    def handle_BoolChoice(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('Bool(') is None:
+            self.setpos(sav0)
+            return None
+        self.SkipComments(self.ignore_wspace)
+        s1 = self.handle_STRING()
+        if s1 is None:
+            self.setpos(sav0)
+            return None
+        self.SkipComments(self.ignore_wspace)
+        if self.handle_OpChar(',') is None:
+            self.setpos(sav0)
+            return None
+        self.SkipComments(self.ignore_wspace)
+        s2 = self.handle_STRING()
+        if s2 is None:
+            self.setpos(sav0)
+            return None
+        self.SkipComments(self.ignore_wspace)
+        if self.handle_OpChar(')') is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_BoolChoice(s1, s2)
+
+    def handle_BoolIf(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('Bool(') is None:
+            self.setpos(sav0)
+            return None
+        self.SkipComments(self.ignore_wspace)
+        s = self.handle_STRING()
+        if s is None:
+            self.setpos(sav0)
+            return None
+        self.SkipComments(self.ignore_wspace)
+        if self.handle_OpChar(')') is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_BoolIf(s)
 
     def handle_ident(self):
         sav0 = self.getpos()
@@ -1251,15 +1327,17 @@ s_sample_LiuD = '''
 
 iExpr {
 taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
-    | ( choices(vlst*) : taxone -(crlf) ^+ '|' )
+    | ( choices(vlst*) : + taxone -(crlf) ^+ '|' )
     | ( MoreDef : '+' baseitem* )
     | ( OtherSyntax : '$NewSyntax' )
     strings :: ( stringchoice(slst*) : '(' STRING ^+ '|' ')' )
         | LitString
     taxone :: ( inline : '(' stmt_tax ')' )
-        | ( serie(vlst*) : baseitem+ )
+        | ( serie(vlst*) : + baseitem+ )
         base0 :: ( bracegroup(vlst*) : '(' base0+ ')' )
             | ( bracechoice(vlst*) : '(' base0 ^+ '|' ')' )
+            | ( BoolChoice : 'Bool(' STRING ',' STRING ')' )
+            | ( BoolIf : 'Bool(' STRING ')' )
             | LitName
             | LitString
             | ( ident : ('+ident' | '=ident' | '-ident')$ )

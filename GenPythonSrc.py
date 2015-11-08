@@ -76,7 +76,7 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         outp.prtln('%s = []' % vname)
         sav2name = None
         if isinstance(node.v4, LiuD_LitName):
-            assert node.v4.n in base_def
+            #assert node.v4.n in base_def
             v2name = self.arglst[self.argno][0]; self.argno += 1
             outp.prtln('%s = []' % v2name)
             sav2name = 'tmp%d' % self.savno; self.savno += 1
@@ -99,9 +99,8 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         if isinstance(node.v4, LiuD_LitString):
             outp.prtln('    if not self.handle_OpChar(%s):' % PythonString(node.v4.s))
         elif isinstance(node.v4, LiuD_LitName):
-            name = node.v4.n
-            assert name in base_def
-            outp.prtln('    %s = self.handle_%s()' % (sav2name, name))
+            #assert name in base_def
+            outp.prtln('    %s = %s' % (sav2name, self.handle_LitName(node.v4)))
             outp.prtln('    if %s is None:' % sav2name)
             #assert isinstance(self.grmlst.dic[name][0], LiuD_stmt_tax)
             #assert False
@@ -325,6 +324,28 @@ class Visit_Gen02(LiuD_sample_visitor_01):
             outp.prtln('if %s is None:' % vname)
             outp.prtln('    self.setpos(sav0)')
             outp.prtln('    return None')
+    def visit_BoolChoice(self, node):
+        outp = OutP(); outp.down(); outp.down()
+        self.skipcomment()
+        vname = self.arglst[self.argno][0]; self.argno += 1
+        outp.prtln('%s = False' % vname)
+        outp.prtln('if self.handle_OpChar(%s) is not None:' % PythonString(node.s1))
+        outp.prtln('    %s = True' % vname)
+        outp.prtln('elif self.handle_OpChar(%s) is None:' % PythonString(node.s2))
+        outp.prtln('    self.setpos(sav0)')
+        outp.prtln('    return None')
+    def visit_BoolIf(self, node):
+        outp = OutP(); outp.down(); outp.down()
+        savname = 'sav%d' % self.savno; self.savno += 1
+        outp.prtln('%s = self.getpos()' % savname)
+        self.skipcomment()
+        vname = self.arglst[self.argno][0]; self.argno += 1
+        outp.prtln('%s = False' % vname)
+        outp.prtln('if self.handle_OpChar(%s) is not None:' % PythonString(node.s))
+        outp.prtln('    %s = True' % vname)
+        outp.prtln('else:')
+        outp.prtln('    self.setpos(%s)' % savname)
+
     def visit_basestrn(self, node):
         outp = OutP(); outp.down(); outp.down()
         self.skipcomment()
@@ -432,6 +453,71 @@ class Visit_Gen02(LiuD_sample_visitor_01):
             self.retv = 'None'
             return
 
+        if isinstance(first, LiuD_jiap):
+            assert isinstance(first.v1, LiuD_LitName)
+            assert len(node.vlst) == 1
+            savname = 'tem%d' % self.savno; self.savno += 1
+            outp.prtln('%s = %s' % (savname, self.handle_LitName(first.v1)))
+            outp.prtln('if %s is None:' % savname)
+            outp.prtln('    return None')
+            vname,vtyp,vtyp2 = self.arglst[self.argno]; self.argno += 1
+            outp.prtln('%s = [%s]' % (vname, savname))
+            outp.prtln('while True:')
+            #outp.down()
+            outp.prtln('    sav0 = self.getpos()')
+            if first.v2q:
+                outp.prtln('    self.SkipComments(self.ignore_%s)' % first.v2q.n)
+            elif self.cur_syntax != 'no':
+                outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
+            if isinstance(first.v4, LiuD_LitString):
+                outp.prtln('    if not self.handle_OpChar(%s):' % PythonString(first.v4.s))
+            elif isinstance(first.v4, LiuD_LitName):
+                name = first.v4.n
+                assert name in base_def
+                outp.prtln('    %s = self.handle_%s()' % (sav2name, name))
+                outp.prtln('    if %s is None:' % sav2name)
+                #assert isinstance(self.grmlst.dic[name][0], LiuD_stmt_tax)
+                #assert False
+            elif isinstance(first.v4, LiuD_basestrn):
+                assert isinstance(first.v4.v, LiuD_LitName)
+                outp.prtln('    if %s is None:' % self.handle_LitName(first.v4.v))
+            else:
+                outp.prtln('    if not self.handle_Ident(%s, self.ignore_%s):' % (PythonString(first.v4.s), self.cur_syntax))
+            outp.prtln('        break')
+            if first.v3q:
+                outp.prtln('    self.SkipComments(self.ignore_%s)' % first.v3q.n)
+            elif self.cur_syntax != 'no':
+                outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
+            outp.prtln('    v3 = %s' % self.handle_LitName(first.v1))
+            outp.prtln('    if v3 is None:')
+            outp.prtln('        break')
+            outp.prtln('    %s.append(v3)' % vname)
+            outp.prtln('self.setpos(sav0)')
+            outp.prtln('if len(%s) == 1:' % vname)
+            outp.prtln('    return %s' % savname)
+            return
+        if isinstance(first, LiuD_itemp):
+            assert isinstance(first.v, LiuD_LitName)
+            assert len(node.vlst) == 1
+            savname = 'tem%d' % self.savno; self.savno += 1
+            outp.prtln('%s = %s' % (savname, self.handle_LitName(first.v)))
+            outp.prtln('if %s is None:' % savname)
+            outp.prtln('    return None')
+            vname,vtyp,vtyp2 = self.arglst[self.argno]; self.argno += 1
+            outp.prtln('%s = [%s]' % (vname, savname))
+            outp.prtln('while True:')
+            #outp.down()
+            outp.prtln('    sav0 = self.getpos()')
+            if self.cur_syntax != 'no':
+                outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
+            outp.prtln('    v3 = %s' % self.handle_LitName(first.v))
+            outp.prtln('    if v3 is None:')
+            outp.prtln('        break')
+            outp.prtln('    %s.append(v3)' % vname)
+            outp.prtln('self.setpos(sav0)')
+            outp.prtln('if len(%s) == 1:' % vname)
+            outp.prtln('    return %s' % savname)
+            return
         assert(False)
         for v in node.vlst:
             v.walkabout(self)
@@ -540,10 +626,6 @@ class Parser(Parser00):
             if not isinstance(value, LiuD_MoreDef):
                 outp.prtln('    sav0 = self.getpos()')
             value.walkabout(visit)
-            if isinstance(value, (LiuD_jiap, LiuD_itemp)):
-                assert len(arglst) == 1
-                outp.prtln('    if len(%s) == 1:' % arglst[0][0])
-                outp.prtln('    return %s[0]' % arglst[0][0], 1)
 
             s6 = ', '.join([nam1 for nam1,_,_ in arglst])
 
@@ -623,6 +705,9 @@ def PrtStmtInline(node, arglst, ignoresyntax, grmlst):
 
         outp.prtln('return %s' % argname)
         outp.up()
+        return
+    if isinstance(node.v, LiuD_LitName):
+        outp.prtln('return %s' % grmlst.handle_LitName(node.v))
         return
     assert False
 
@@ -934,6 +1019,12 @@ def gen_sample_01(grmlst):
         outp.down()
         flg = False
         for s,typ,typ2 in arglst:
+            if typ2 == 'vlstq':
+                outp.prtln('if node.%s is not None:' % s)
+                outp.prtln('for v in node.%s:' % s, 1)
+                outp.prtln('v.walkabout(self)', 2)
+                flg = True
+                continue
             if typ2 == 'vlst':
                 outp.prtln('for v in node.%s:' % s)
                 outp.prtln('v.walkabout(self)', 1)
@@ -948,7 +1039,7 @@ def gen_sample_01(grmlst):
                 outp.prtln('node.%s.walkabout(self)' % s, 1)
                 flg = True
                 continue
-            if typ2 in ('i','f','s','sq','slst','n','nq','nlst'):
+            if typ2 in ('i','f','s','b','sq','slst','n','nq','nlst'):
                 continue
             if typ in ('.s', '.s?', '.s*'):
                 continue
@@ -1183,6 +1274,16 @@ class Out2_visitor:
         #    self.outp.prtln('self.outp.puts(%s)' % tem2)
         #else:
         #    self.outp.prtln('    %s.walkabout(self)' % tem2)
+    def visit_Xchoice(self, node):
+        arg, typ, typ2 = self.arglst[self.argno]; self.argno += 1
+        self.outp.prtln('if node.%s:' % arg)
+        self.outp.prtln('self.outp.puts(%s)' % To2PythonString(node.s1), 1)
+        self.outp.prtln('else:')
+        self.outp.prtln('self.outp.puts(%s)' % To2PythonString(node.s2), 1)
+    def visit_Xif(self, node):
+        arg, typ, typ2 = self.arglst[self.argno]; self.argno += 1
+        self.outp.prtln('if node.%s:' % arg)
+        self.outp.prtln('self.outp.puts(%s)' % To2PythonString(node.s), 1)
     def visit_Xq(self, node):
         arg,typ,typ2 = self.arglst[self.argno]; self.argno += 1
         self.outp.prtln('if node.%s is not None:' % arg)

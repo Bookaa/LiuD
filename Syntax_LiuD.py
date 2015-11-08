@@ -18,15 +18,17 @@ s_tree = '''
 
 iExpr {
 taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
-    | ( choices(vlst*) : taxone -(crlf) ^+ '|' )
+    | ( choices(vlst*) : + taxone -(crlf) ^+ '|' )
     | ( MoreDef : '+' baseitem* )
     | ( OtherSyntax : '$NewSyntax' )
     strings :: ( stringchoice(slst*) : '(' STRING ^+ '|' ')' )
         | LitString
     taxone :: ( inline : '(' stmt_tax ')' )
-        | ( serie(vlst*) : baseitem+ )
+        | ( serie(vlst*) : + baseitem+ )
         base0 :: ( bracegroup(vlst*) : '(' base0+ ')' )
             | ( bracechoice(vlst*) : '(' base0 ^+ '|' ')' )
+            | ( BoolChoice : 'Bool(' STRING ',' STRING ')' )
+            | ( BoolIf : 'Bool(' STRING ')' )
             | LitName
             | LitString
             | ( ident : ('+ident' | '=ident' | '-ident')$ )
@@ -74,6 +76,8 @@ inline : '(' x ')'
 serie : x*
 bracegroup : '(' x* ')'
 bracechoice : '(' x ^* '|' ')'
+BoolChoice : 'Bool(' x ',' x ')'
+BoolIf : 'Bool(' x ')'
 ident : x
 basestrn : x - '$'
 LitName : x

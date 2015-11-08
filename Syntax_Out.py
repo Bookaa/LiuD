@@ -27,11 +27,14 @@ stmt :: stmtone NEWLINE$
         | ( newline : 'NL' )
         | ( lnk : '-' )
         | ( Xlst : 'x*' )
+        | ( Xchoice : 'x?(' STRING ',' STRING ')' )
+        | ( Xif : 'x?(' STRING ')' )
         | ( Xq : 'x?' )
         | ( X : 'x' )
 
 
-Module(vlst*) : NEWLINE$? stmt* ENDMARKER$
+.syntax crlf
+Module(vlst*) : stmt* ENDMARKER$
 '''
 
 Out_self = '''
@@ -45,6 +48,8 @@ ident : x
 newline : 'NL'
 lnk : '-'
 Xlst : 'x*'
+Xchoice : 'x?(' x ',' x ')'
+Xif : 'x?(' x ')'
 Xq : 'x?'
 X : 'x'
 '''

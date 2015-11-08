@@ -71,6 +71,23 @@ class Out_Xlst:
         return visitor.visit_Xlst(self)
 
 
+class Out_Xchoice:
+    def __init__(self, s1, s2):
+        self.s1 = s1
+        self.s2 = s2
+
+    def walkabout(self, visitor):
+        return visitor.visit_Xchoice(self)
+
+
+class Out_Xif:
+    def __init__(self, s):
+        self.s = s
+
+    def walkabout(self, visitor):
+        return visitor.visit_Xif(self)
+
+
 class Out_Xq:
 
     def walkabout(self, visitor):
@@ -100,6 +117,8 @@ class Out_sample_visitor_00:
     def visit_newline(self, node): pass
     def visit_lnk(self, node): pass
     def visit_Xlst(self, node): pass
+    def visit_Xchoice(self, node): pass
+    def visit_Xif(self, node): pass
     def visit_Xq(self, node): pass
     def visit_X(self, node): pass
     def visit_Module(self, node): pass
@@ -128,6 +147,10 @@ class Out_sample_visitor_01:
     def visit_lnk(self, node):
         pass
     def visit_Xlst(self, node):
+        pass
+    def visit_Xchoice(self, node):
+        pass
+    def visit_Xif(self, node):
         pass
     def visit_Xq(self, node):
         pass
@@ -171,6 +194,16 @@ class Out_out_visitor_01:
         self.outp.puts('-')
     def visit_Xlst(self, node):
         self.outp.puts('x*')
+    def visit_Xchoice(self, node):
+        self.outp.puts('x?(')
+        self.outp.puts(node.s1)
+        self.outp.puts(',')
+        self.outp.puts(node.s2)
+        self.outp.puts(')')
+    def visit_Xif(self, node):
+        self.outp.puts('x?(')
+        self.outp.puts(node.s)
+        self.outp.puts(')')
     def visit_Xq(self, node):
         self.outp.puts('x?')
     def visit_X(self, node):
@@ -262,6 +295,12 @@ class Parser(Parser00):
         if v is not None:
             return v
         v = self.handle_Xlst()
+        if v is not None:
+            return v
+        v = self.handle_Xchoice()
+        if v is not None:
+            return v
+        v = self.handle_Xif()
         if v is not None:
             return v
         v = self.handle_Xq()
@@ -385,6 +424,47 @@ class Parser(Parser00):
             return None
         return Out_Xlst()
 
+    def handle_Xchoice(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('x?(') is None:
+            self.setpos(sav0)
+            return None
+        self.SkipComments(self.ignore_wspace)
+        s1 = self.handle_STRING()
+        if s1 is None:
+            self.setpos(sav0)
+            return None
+        self.SkipComments(self.ignore_wspace)
+        if self.handle_OpChar(',') is None:
+            self.setpos(sav0)
+            return None
+        self.SkipComments(self.ignore_wspace)
+        s2 = self.handle_STRING()
+        if s2 is None:
+            self.setpos(sav0)
+            return None
+        self.SkipComments(self.ignore_wspace)
+        if self.handle_OpChar(')') is None:
+            self.setpos(sav0)
+            return None
+        return Out_Xchoice(s1, s2)
+
+    def handle_Xif(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('x?(') is None:
+            self.setpos(sav0)
+            return None
+        self.SkipComments(self.ignore_wspace)
+        s = self.handle_STRING()
+        if s is None:
+            self.setpos(sav0)
+            return None
+        self.SkipComments(self.ignore_wspace)
+        if self.handle_OpChar(')') is None:
+            self.setpos(sav0)
+            return None
+        return Out_Xif(s)
+
     def handle_Xq(self):
         sav0 = self.getpos()
         self.SkipComments(self.ignore_wspace)
@@ -402,10 +482,8 @@ class Parser(Parser00):
         return Out_X()
 
     def handle_Module(self):
-        self.SkipComments(self.ignore_wspace)
+        self.SkipComments(self.ignore_crlf)
         sav0 = self.getpos()
-        self.handle_NEWLINE()
-        self.SkipComments(self.ignore_wspace)
         vlst = []
         sav1 = self.getpos()
         while True:
@@ -414,9 +492,9 @@ class Parser(Parser00):
                 break
             vlst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.SkipComments(self.ignore_crlf)
         self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.SkipComments(self.ignore_crlf)
         if self.handle_ENDMARKER() is None:
             self.setpos(sav0)
             return None
@@ -452,6 +530,8 @@ ident : x
 newline : 'NL'
 lnk : '-'
 Xlst : 'x*'
+Xchoice : 'x?(' x ',' x ')'
+Xif : 'x?(' x ')'
 Xq : 'x?'
 X : 'x'
 '''

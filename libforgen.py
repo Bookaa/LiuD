@@ -92,7 +92,7 @@ class SmartType:
         if Dest == 'swift':
             if self.typ2 in ('vq','sq','nq'): #.endswith('q'):
                 s += '!'
-        if self.typ2 in ('s','sq', 'n', 'nq', 'i', 'iq', 'f', 'fq'): #arg.startswith('s'):
+        if self.typ2 in ('s','sq', 'n', 'nq', 'i', 'iq', 'f', 'fq', 'b'): #arg.startswith('s'):
             return 'self.outp.puts(%s)' % s
         return '%s.walkabout(self)' % s
 
@@ -125,10 +125,9 @@ def smarttyp2(s, typ2):
                 return '%s_%s?' % (s[1:-1], SynName)
             return '%s_%s' % (s[1:], SynName)
         return '%s_%s' % (SynName, s)
-    if typ2 == 'i':
-        return 'Int'
-    if typ2 == 'f':
-        return 'Double'
+    if typ2 == 'i': return 'Int'
+    if typ2 == 'f': return 'Double'
+    if typ2 == 'b': return 'Bool'
     if typ2 in ('s','n'): return 'String'
     if typ2 in ('sq','nq'): return 'String?'
     if typ2 in ('slst','nlst'): return '[String]'
@@ -271,6 +270,9 @@ class Visit_00(LiuD_sample_visitor_01):
                 if isinstance(node1.v, LiuD_opt2):
                     s = node1.v.s
                     return self.howword(s)
+                if isinstance(node1.v, LiuD_MoreDef):
+                    s_prot = self.dic[s].protcl
+                    return [('v', '.%s' % s_prot)]
                 return [('v', s)]
             else:
                 assert False
@@ -289,7 +291,7 @@ class Visit_00(LiuD_sample_visitor_01):
                 a2,b2 = result[0]
                 if a1 == a2 == 'v':
                     if b1 != b2:
-                        r0 = 'v','.v'
+                        r0 = 'v',self.combintype(b1,b2)
                         continue
                     r0 = 'v', b1
                     continue
@@ -301,6 +303,10 @@ class Visit_00(LiuD_sample_visitor_01):
                     continue
                 assert False
         return [r0]
+    def visit_BoolChoice(self, node):
+        return [('b','.b')]
+    def visit_BoolIf(self, node):
+        return [('b','.b')]
     def visit_basestrn(self, node):
         if isinstance(node.v, LiuD_LitName):
             pass # do nothing
