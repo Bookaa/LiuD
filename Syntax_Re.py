@@ -2,9 +2,7 @@
 
 SynName = 'Re'
 
-ignores = {
-    'no' : ( '', [] )
-}
+ignores = { }
 
 
 base_def = { 'NAME'   : ('Name',     '[A-Za-z_][A-Za-z0-9_]*'),
@@ -13,7 +11,7 @@ base_def = { 'NAME'   : ('Name',     '[A-Za-z_][A-Za-z0-9_]*'),
              }
 
 s_tree = '''
-.syntax no
+.syntax -
 
 Module: stmt ENDMARKER$
 

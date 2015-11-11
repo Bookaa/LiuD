@@ -26,7 +26,7 @@ taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
     taxone :: ( inline : '(' stmt_tax ')' )
         | ( serie(vlst*) : + baseitem+ )
         base0 :: ( bracegroup(vlst*) : '(' base0+ ')' )
-            | ( bracechoice(vlst*) : '(' base0 ^+ '|' ')' )
+            | ( bracechoice(vlst*) : '(' base1 ^+ '|' ')' )
             | ( BoolChoice : 'Bool(' STRING ',' STRING ')' )
             | ( BoolIf : 'Bool(' STRING ')' )
             | LitName
@@ -50,7 +50,7 @@ taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
         LitString : STRING
 }
 stmt :: stmtone NEWLINE$
-    stmtone :: ( dot_syntax : '.syntax' NAME )
+    stmtone :: ( dot_syntax : '.syntax' (NAME | '-'$) )
         | stmt_inline
         | stmt_tax
         | protoGroup

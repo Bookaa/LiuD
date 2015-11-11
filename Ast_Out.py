@@ -221,7 +221,6 @@ class Parser(Parser00):
 
         self.ignore_wspace = IgnoreCls(' \t', ['/\\*(.|\\n)*?\\*/'])
         self.ignore_crlf = IgnoreCls(' \t\n', ['//.*', '/\\*(.|\\n)*?\\*/'])
-        self.ignore_no = IgnoreCls('', [])
         
         self.lex_NEWLINE = HowRe('\\n+')
         self.lex_NAME = HowRe('[A-Za-z_][A-Za-z0-9_]*')

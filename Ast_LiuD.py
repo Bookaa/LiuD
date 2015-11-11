@@ -812,7 +812,7 @@ class Parser(Parser00):
         vlst = []
         sav1 = self.getpos()
         while True:
-            v3 = self.hdl_base0()
+            v3 = self.hdl_base1()
             if v3 is None:
                 break
             vlst.append(v3)
@@ -1177,6 +1177,8 @@ class Parser(Parser00):
         self.SkipComments(self.ignore_wspace)
         n = self.handle_NAME()
         if n is None:
+            n = self.handle_OpChar('-')
+        if n is None:
             self.setpos(sav0)
             return None
         return LiuD_dot_syntax(n)
@@ -1360,7 +1362,7 @@ taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
     taxone :: ( inline : '(' stmt_tax ')' )
         | ( serie(vlst*) : + baseitem+ )
         base0 :: ( bracegroup(vlst*) : '(' base0+ ')' )
-            | ( bracechoice(vlst*) : '(' base0 ^+ '|' ')' )
+            | ( bracechoice(vlst*) : '(' base1 ^+ '|' ')' )
             | ( BoolChoice : 'Bool(' STRING ',' STRING ')' )
             | ( BoolIf : 'Bool(' STRING ')' )
             | LitName
@@ -1384,7 +1386,7 @@ taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
         LitString : STRING
 }
 stmt :: stmtone NEWLINE$
-    stmtone :: ( dot_syntax : '.syntax' NAME )
+    stmtone :: ( dot_syntax : '.syntax' (NAME | '-'$) )
         | stmt_inline
         | stmt_tax
         | protoGroup

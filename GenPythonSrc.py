@@ -20,7 +20,7 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         self.retv = 'None'
     def skipcomment(self):
         outp = OutP(); outp.down(); outp.down()
-        if self.flgcomment and self.cur_syntax != 'no':
+        if self.flgcomment and self.cur_syntax != '-':
             outp.prtln('self.SkipComments(self.ignore_%s)' % self.cur_syntax)
         self.flgcomment = True
 
@@ -35,7 +35,7 @@ class Visit_Gen02(LiuD_sample_visitor_01):
 
         savname = 'sav%d' % self.savno; self.savno += 1
         assert isinstance(node.v1, LiuD_LitName)
-        assert isinstance(node.v4, (LiuD_LitString, LiuD_ident))
+        assert isinstance(node.v4, (LiuD_LitString, LiuD_ident, LiuD_basestrn, LiuD_LitName))
         vname, vtyp, vtyp2 = self.arglst[self.argno]; self.argno += 1
         outp.prtln('%s = []' % vname)
         outp.prtln('%s = self.getpos()' % savname)
@@ -46,17 +46,23 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         outp.prtln('    %s.append(v3)' % vname)
         outp.prtln('    %s = self.getpos()' % savname)
         if node.v2q:
-            outp.prtln('    self.SkipComments(self.ignore_%s)' % node.v2q.s)
-        elif self.cur_syntax != 'no':
+            outp.prtln('    self.SkipComments(self.ignore_%s)' % node.v2q.n)
+        elif self.cur_syntax != '-':
             outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
         if isinstance(node.v4, LiuD_LitString):
             outp.prtln('    if not self.handle_OpChar(%s):' % PythonString(node.v4.s))
+        elif isinstance(node.v4, LiuD_LitName):
+            outp.prtln('    %s = %s' % (sav2name, self.handle_LitName(node.v4)))
+            outp.prtln('    if %s is None:' % sav2name)
+        elif isinstance(node.v4, LiuD_basestrn):
+            assert isinstance(node.v4.v, LiuD_LitName)
+            outp.prtln('    if %s is None:' % self.handle_LitName(node.v4.v))
         else:
             outp.prtln('    if not self.handle_Ident(%s, self.ignore_%s):' % (PythonString(node.v4.s), self.cur_syntax))
         outp.prtln('        break')
         if node.v3q:
             outp.prtln('    self.SkipComments(self.ignore_%s)' % node.v3q.s)
-        elif self.cur_syntax != 'no':
+        elif self.cur_syntax != '-':
             outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
         outp.prtln('self.setpos(%s)' % savname)
     def handle_LitName(self, node):
@@ -94,16 +100,13 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         outp.prtln('    %s = self.getpos()' % savname)
         if node.v2q:
             outp.prtln('    self.SkipComments(self.ignore_%s)' % node.v2q.n)
-        elif self.cur_syntax != 'no':
+        elif self.cur_syntax != '-':
             outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
         if isinstance(node.v4, LiuD_LitString):
             outp.prtln('    if not self.handle_OpChar(%s):' % PythonString(node.v4.s))
         elif isinstance(node.v4, LiuD_LitName):
-            #assert name in base_def
             outp.prtln('    %s = %s' % (sav2name, self.handle_LitName(node.v4)))
             outp.prtln('    if %s is None:' % sav2name)
-            #assert isinstance(self.grmlst.dic[name][0], LiuD_stmt_tax)
-            #assert False
         elif isinstance(node.v4, LiuD_basestrn):
             assert isinstance(node.v4.v, LiuD_LitName)
             outp.prtln('    if %s is None:' % self.handle_LitName(node.v4.v))
@@ -112,7 +115,7 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         outp.prtln('        break')
         if node.v3q:
             outp.prtln('    self.SkipComments(self.ignore_%s)' % node.v3q.s)
-        elif self.cur_syntax != 'no':
+        elif self.cur_syntax != '-':
             outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
         outp.prtln('if not %s:' % vname)
         outp.prtln('    self.setpos(sav0)')
@@ -135,8 +138,11 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         outp.prtln('    return %s' % self.retv)
 
     def visit_syntaxdef(self, node):
-        if node.n != 'no':
+        if node.n != '-':
             print '        self.SkipComments(self.ignore_%s)' % node.n
+        self.flgcomment = False
+
+    def visit_noskip(self, node):
         self.flgcomment = False
 
     def visit_itemq(self, node):
@@ -145,7 +151,8 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         if self.flgcomment:
             savname = 'sav%d' % self.savno; self.savno += 1
             outp.prtln('%s = self.getpos()' % savname)
-            outp.prtln('self.SkipComments(self.ignore_%s)' % self.cur_syntax)
+            if self.cur_syntax != '-':
+                outp.prtln('self.SkipComments(self.ignore_%s)' % self.cur_syntax)
         self.flgcomment = True
 
         if isinstance(node.v, LiuD_LitName):
@@ -197,12 +204,12 @@ class Visit_Gen02(LiuD_sample_visitor_01):
             outp.prtln('        break')
             outp.prtln('    %s.append(v3)' % vname)
             outp.prtln('    sav1 = self.getpos()')
-            if self.cur_syntax != 'no':
+            if self.cur_syntax != '-':
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
             outp.prtln('self.setpos(%s)' % savname)
         elif isinstance(node.v, LiuD_basestrn):
             if isinstance(node.v.v, LiuD_LitName):
-                if self.cur_syntax == 'no':
+                if self.cur_syntax == '-':
                     outp.prtln('while self.handle_%s() is not None:' % node.v.v.s)
                     outp.prtln('    pass')
                 else:
@@ -213,7 +220,7 @@ class Visit_Gen02(LiuD_sample_visitor_01):
                     outp.prtln('    if v3 is None:')
                     outp.prtln('        break')
                     outp.prtln('    %s = self.getpos()' % savname)
-                    if self.cur_syntax != 'no':
+                    if self.cur_syntax != '-':
                         outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
                     outp.prtln('self.setpos(%s)' % savname)
                 pass
@@ -237,7 +244,8 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         outp.prtln('        break')
         outp.prtln('    %s.append(v3)' % vname)
         outp.prtln('    %s = self.getpos()' % savname)
-        outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
+        if self.cur_syntax != '-':
+            outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
         outp.prtln('if not %s:' % vname)
         outp.prtln('    self.setpos(sav0)')
         outp.prtln('    return None')
@@ -257,7 +265,8 @@ class Visit_Gen02(LiuD_sample_visitor_01):
                 if no:
                     outp.prtln('if flag:')
                     outp.down()
-                    outp.prtln('self.SkipComments(self.ignore_%s)' % self.cur_syntax)
+                    if self.cur_syntax != '-':
+                        outp.prtln('self.SkipComments(self.ignore_%s)' % self.cur_syntax)
 
                 outp.prtln('if self.%s is None:' % Word_or_Symbol(v.s))
                 outp.prtln('flag = False', 1)
@@ -270,7 +279,8 @@ class Visit_Gen02(LiuD_sample_visitor_01):
                     outp.prtln('%s = None' % vname)
                     outp.prtln('if flag:')
                     outp.down()
-                    outp.prtln('self.SkipComments(self.ignore_%s)' % self.cur_syntax)
+                    if self.cur_syntax != '-':
+                        outp.prtln('self.SkipComments(self.ignore_%s)' % self.cur_syntax)
                 outp.prtln('%s = %s' % (vname, self.handle_LitName(v)))
                 outp.prtln('if %s is None:' % vname)
                 outp.prtln('flag = False', 1)
@@ -317,6 +327,16 @@ class Visit_Gen02(LiuD_sample_visitor_01):
                 else:
                     outp.prtln('if %s is None:' % vname)
                     outp.prtln('    %s = self.handle_%s()' % (vname, v.v.s))
+            elif isinstance(v, LiuD_basestrn):
+                if isinstance(v.v, LiuD_LitString):
+                    if first:
+                        vname = self.arglst[self.argno]; self.argno += 1
+                        outp.prtln('%s = self.%s' % (vname, Word_or_Symbol(v.v.s)))
+                    else:
+                        outp.prtln('if %s is None:' % vname)
+                        outp.prtln('    %s = self.%s' % (vname, Word_or_Symbol(v.v.s)))
+                else:
+                    assert False
             else:
                 assert False
             first = False
@@ -336,15 +356,16 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         outp.prtln('    return None')
     def visit_BoolIf(self, node):
         outp = OutP(); outp.down(); outp.down()
-        savname = 'sav%d' % self.savno; self.savno += 1
-        outp.prtln('%s = self.getpos()' % savname)
+        #savname = 'sav%d' % self.savno; self.savno += 1
+        #outp.prtln('%s = self.getpos()' % savname)
         self.skipcomment()
         vname = self.arglst[self.argno][0]; self.argno += 1
-        outp.prtln('%s = False' % vname)
-        outp.prtln('if self.handle_OpChar(%s) is not None:' % PythonString(node.s))
-        outp.prtln('    %s = True' % vname)
-        outp.prtln('else:')
-        outp.prtln('    self.setpos(%s)' % savname)
+        #outp.prtln('%s = False' % vname)
+        #outp.prtln('if self.handle_OpChar(%s) is not None:' % PythonString(node.s))
+        #outp.prtln('    %s = True' % vname)
+        #outp.prtln('else:')
+        #outp.prtln('    self.setpos(%s)' % savname)
+        outp.prtln('%s = self.handle_OpChar(%s) is not None' % (vname, PythonString(node.s)))
 
     def visit_basestrn(self, node):
         outp = OutP(); outp.down(); outp.down()
@@ -435,7 +456,32 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         outp.prtln('    self.setpos(sav0)')
         outp.prtln('    return None')
         self.skipcomment()
-        outp.prtln('pass')
+        s33 = '''
+        if s1 == 'Python':
+            import Ast_Python
+            newparser = Ast_Python.Parser(self.srctxt)
+            newparser.setpos(self.getpos())
+            if s2 == 'item0':
+                result = newparser.hdl_item0()
+            elif s2 == 'value':
+                result = newparser.handle_value()
+            else:
+                assert False
+            if result is None:
+                self.setpos(sav0)
+                return None
+            newpos = newparser.getpos()
+            self.setpos(newpos)
+            self.SkipComments(self.ignore_crlf)
+            if self.handle_OpChar('}') is None:
+                self.setpos(sav0)
+                return None
+            return LangL_OtherSyntax(s1, s2, result)
+
+        self.setpos(sav0)
+        return None
+'''
+        outp.prtln(s33)
 
     def visit_MoreDef(self, node):
         outp = OutP(); outp.down(); outp.down()
@@ -467,7 +513,7 @@ class Visit_Gen02(LiuD_sample_visitor_01):
             outp.prtln('    sav0 = self.getpos()')
             if first.v2q:
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % first.v2q.n)
-            elif self.cur_syntax != 'no':
+            elif self.cur_syntax != '-':
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
             if isinstance(first.v4, LiuD_LitString):
                 outp.prtln('    if not self.handle_OpChar(%s):' % PythonString(first.v4.s))
@@ -486,7 +532,7 @@ class Visit_Gen02(LiuD_sample_visitor_01):
             outp.prtln('        break')
             if first.v3q:
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % first.v3q.n)
-            elif self.cur_syntax != 'no':
+            elif self.cur_syntax != '-':
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
             outp.prtln('    v3 = %s' % self.handle_LitName(first.v1))
             outp.prtln('    if v3 is None:')
@@ -508,7 +554,7 @@ class Visit_Gen02(LiuD_sample_visitor_01):
             outp.prtln('while True:')
             #outp.down()
             outp.prtln('    sav0 = self.getpos()')
-            if self.cur_syntax != 'no':
+            if self.cur_syntax != '-':
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % self.cur_syntax)
             outp.prtln('    v3 = %s' % self.handle_LitName(first.v))
             outp.prtln('    if v3 is None:')
@@ -587,7 +633,7 @@ class Parser(Parser00):
     for nodeinfo in grmlst.iter_all():
         (node, arglst, ignoresyntax) = (nodeinfo.node, nodeinfo.arglst, nodeinfo.ign_syntax)
         print
-        if node.s == 'stringchoice':
+        if node.s == 'syntaxdef':
             pass
 
         if isinstance(node, LiuD_stmt_inline):
@@ -601,7 +647,7 @@ class Parser(Parser00):
             continue
 
         outp.prtln('def handle_%s(self):' % node.s)
-        if node.s == 'Module' and ignoresyntax != 'no':
+        if node.s == 'Module' and ignoresyntax != '-':
             outp.prtln('    self.SkipComments(self.ignore_%s)' % ignoresyntax)
         if not arglst:
             PrtNoArg(node, ignoresyntax, grmlst)
@@ -723,7 +769,8 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
             if no:
                 outp.prtln('if flag:')
                 outp.down()
-                outp.prtln('self.SkipComments(self.ignore_%s)' % cur_syntax)
+                if cur_syntax != '-':
+                    outp.prtln('self.SkipComments(self.ignore_%s)' % cur_syntax)
 
             outp.prtln('if self.%s is None:' % Word_or_Symbol(v.s))
             outp.prtln('flag = False', 1)
@@ -736,7 +783,8 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
                 outp.prtln('%s = None' % vname)
                 outp.prtln('if flag:')
                 outp.down()
-                outp.prtln('self.SkipComments(self.ignore_%s)' % cur_syntax)
+                if cur_syntax != '-':
+                    outp.prtln('self.SkipComments(self.ignore_%s)' % cur_syntax)
             outp.prtln('%s = self.handle_%s()' % (vname, v.s))
             outp.prtln('if %s is None:' % vname)
             outp.prtln('flag = False', 1)
@@ -751,7 +799,8 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
             if no:
                 outp.prtln('if flag:')
                 outp.down()
-                outp.prtln('self.SkipComments(self.ignore_%s)' % cur_syntax)
+                if cur_syntax != '-':
+                    outp.prtln('self.SkipComments(self.ignore_%s)' % cur_syntax)
             node = v
             savname = 'sav%d' % savno; savno += 1
             assert isinstance(node.v1, LiuD_LitName)
@@ -765,7 +814,7 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
             outp.prtln('    %s = self.getpos()' % savname)
             if node.v2q:
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % node.v2q.s)
-            elif cur_syntax != 'no':
+            elif cur_syntax != '-':
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % cur_syntax)
             if isinstance(node.v4, LiuD_LitString):
                 outp.prtln('    if not self.handle_OpChar(%s):' % PythonString(node.v4.s))
@@ -777,7 +826,7 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
             outp.prtln('        break')
             if node.v3q:
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % node.v3q.s)
-            elif cur_syntax != 'no':
+            elif cur_syntax != '-':
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % cur_syntax)
             outp.prtln('self.setpos(%s)' % savname)
             if no:
@@ -788,7 +837,8 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
             if no:
                 outp.prtln('if flag:')
                 outp.down()
-                outp.prtln('self.SkipComments(self.ignore_%s)' % cur_syntax)
+                if cur_syntax != '-':
+                    outp.prtln('self.SkipComments(self.ignore_%s)' % cur_syntax)
             node = v
             savname = 'sav%d' % savno; savno += 1
             assert isinstance(node.v1, LiuD_LitName)
@@ -802,7 +852,7 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
             outp.prtln('    %s = self.getpos()' % savname)
             if node.v2q:
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % node.v2q.s)
-            elif cur_syntax != 'no':
+            elif cur_syntax != '-':
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % cur_syntax)
             if isinstance(node.v4, LiuD_LitString):
                 outp.prtln('    if not self.handle_OpChar(%s):' % PythonString(node.v4.s))
@@ -814,7 +864,7 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
             outp.prtln('        break')
             if node.v3q:
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % node.v3q.s)
-            elif cur_syntax != 'no':
+            elif cur_syntax != '-':
                 outp.prtln('    self.SkipComments(self.ignore_%s)' % cur_syntax)
             outp.prtln('if not %s:' % vname)
             outp.prtln('    flag = False')
@@ -826,7 +876,8 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
             if no:
                 outp.prtln('if flag:')
                 outp.down()
-                outp.prtln('self.SkipComments(self.ignore_%s)' % cur_syntax)
+                if self.cur_syntax != '-':
+                    outp.prtln('self.SkipComments(self.ignore_%s)' % cur_syntax)
 
             if isinstance(v.v, LiuD_LitName):
                 outp.prtln('if self.handle_%s() is None:' % v.v.s)
@@ -889,12 +940,14 @@ def PrtOpt2(node, arglst, ignoresyntax, grmlst):
             if no > 1:
                 outp.prtln('v1 = self.step%d_%s(v1)' % (no-1, node.s))
             outp.prtln('sav0 = self.getpos()')
-            outp.prtln('self.SkipComments(self.ignore_%s)' % ignoresyntax)
+            if ignoresyntax != '-':
+                outp.prtln('self.SkipComments(self.ignore_%s)' % ignoresyntax)
             outp.prtln('op = self.GetOpInLst([%s])' % s7)
             outp.prtln('if op is None:')
             outp.prtln('self.setpos(sav0)', 1)
             outp.prtln('return v1', 1)
-            outp.prtln('self.SkipComments(self.ignore_%s)' % ignoresyntax)
+            if ignoresyntax != '-':
+                outp.prtln('self.SkipComments(self.ignore_%s)' % ignoresyntax)
             outp.prtln('v2 = %s' % s9)
             outp.prtln('if v2 is None:')
             outp.prtln('self.setpos(sav0)', 1)
@@ -1227,6 +1280,19 @@ class Out2_visitor:
         #else:
         #    self.outp.prtln('    %s.walkabout(self)' % tem2)
     def visit_String(self, node):
+        if node.s == 'othersyntax':
+            s33 = '''
+        if node.s1 == 'Python':
+            import Ast_Python
+            the = Ast_Python.Python_out_visitor_01(self.outp)
+            node.v.walkabout(the)
+            self.outp.puts('}')
+            return
+        else:
+            assert False
+            '''
+            self.outp.prtln(s33)
+            return
         self.outp.prtln('self.outp.puts(%s)' % To2PythonString(node.s))
     def visit_optgroup(self, node):
         arg = self.arglst[self.argno][0]

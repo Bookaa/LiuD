@@ -5,7 +5,6 @@ SynName = 'Python'
 ignores = {
     'crlf'   : ( ' \t\n', [ r'\#.*', r'/\*(.|\n)*?\*/' ] ),
     'wspace' : ( ' \t', [ r'\#.*', r'/\*(.|\n)*?\*/' ] ),
-    'no'     : ( '', [] )
 }
 
 
@@ -21,7 +20,6 @@ s_tree = '''
 .syntax wspace
 
 iExpr {
-values(vlst*) : value ^+ ','
 value04(v1,s,v2): item0 ^- (('*'|'/') ('+'|'-') ('>'|'<'|'!='|'=='))
 value05 : +value04 'if' value04 'else' value04
 value : value05
@@ -114,7 +112,6 @@ bodyif : +ident (x NL)* -ident
 bodyns : +ident (x NL)* -ident
 classbase : '(' x ^* ',' ')'
 VarRef : x
-values : x ^* ','
 value04 : x x x
 value05 : x 'if' x 'else' x
 value : x
@@ -201,4 +198,13 @@ lst3 = [3,5,7]
 item1 = lst3[2]
 print item1
 
+'''
+
+s_sample2 = '''
+a1 = {"hello","world"}
+b1 = a1
+a1.add("OK")
+print 'should be:'
+print "set(['world', 'OK', 'hello']) set(['world', 'OK', 'hello'])"
+print a1,b1
 '''

@@ -29,7 +29,7 @@ def PythonString(s):
 def AnyEscapeChar(s):
     return False
 
-def ToSwiftString(s):
+def SwiftString(s):
     s0 = ''
     #savlast = ''
     for c in s:
@@ -58,12 +58,12 @@ def ToSwiftString(s):
     if s0 == r'\\\\':
         pass
     s2 = '"%s"' % s0
-    #print 'ToSwiftString <%s> <%s>' % (s, s2)
+    #print 'SwiftString <%s> <%s>' % (s, s2)
     # <\#.*> <"\#.*">
     return s2
 def SwiftStringMultiLine(s):
     lst = s.split('\n')
-    lst2 = [ToSwiftString(a+'\n') for a in lst]
+    lst2 = [SwiftString(a+'\n') for a in lst]
     s9 = ' +\n        '.join(lst2)
     return s9
 
@@ -103,6 +103,12 @@ def smartq(arg123):
     return s
 
 def smarttyp2(s, typ2):
+    if typ2 == 'vlstq': #s.endswith('*'):
+        if s.endswith('?'): s = s[:-1]
+        if s.endswith('*'): s = s[:-1]
+        if s == '.v': return '[AST_%s]?' % SynName
+        if s.startswith('.'): return '[%s_%s]?' % (s[1:], SynName)
+        return '[%s_%s]?' % (SynName, s)
     if typ2 == 'vlst': #s.endswith('*'):
         if s.endswith('*'):
             s = s[:-1]
@@ -289,6 +295,9 @@ class Visit_00(LiuD_sample_visitor_01):
             else:
                 a1,b1 = r0
                 a2,b2 = result[0]
+                if (a1,a2) == ('n','s'):
+                    r0 = 'n', '.n'
+                    continue
                 if a1 == a2 == 'v':
                     if b1 != b2:
                         r0 = 'v',self.combintype(b1,b2)
@@ -334,7 +343,7 @@ class LiudNodeInfo:
 
 class Visit_Gen01(LiuD_sample_visitor_01):
     def __init__(self):
-        self.cur_syntax = 'no'
+        self.cur_syntax = '-'
         self.lst0 = [] # only save name, for keep sequence
         self.dic = {}
         self.cur_protocol = 'AST' #_%s' % SynName

@@ -5,7 +5,6 @@ SynName = 'Out'
 ignores = {
     'crlf'   : ( ' \t\n', [ '//.*', r'/\*(.|\n)*?\*/' ] ),
     'wspace' : ( ' \t', [ r'/\*(.|\n)*?\*/' ] ),
-    'no'     : ( '', [] )
 }
 
 base_def = { 'NEWLINE' :    ('',    '\\n+'),
