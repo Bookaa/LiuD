@@ -184,6 +184,12 @@ class LiuD_syntaxdef:
         return visitor.visit_syntaxdef(self)
 
 
+class LiuD_noskip:
+
+    def walkabout(self, visitor):
+        return visitor.visit_noskip(self)
+
+
 class LiuD_LitName:
     def __init__(self, n):
         self.n = n
@@ -284,6 +290,7 @@ class LiuD_sample_visitor_00:
     def visit_jiap(self, node): pass
     def visit_optgroup(self, node): pass
     def visit_syntaxdef(self, node): pass
+    def visit_noskip(self, node): pass
     def visit_LitName(self, node): pass
     def visit_LitString(self, node): pass
     def visit_dot_syntax(self, node): pass
@@ -355,6 +362,8 @@ class LiuD_sample_visitor_01:
         for v in node.vlst:
             v.walkabout(self)
     def visit_syntaxdef(self, node):
+        pass
+    def visit_noskip(self, node):
         pass
     def visit_LitName(self, node):
         pass
@@ -509,6 +518,8 @@ class LiuD_out_visitor_01:
         self.outp.puts(node.n)
         self.outp.lnk()
         self.outp.puts(')')
+    def visit_noskip(self, node):
+        self.outp.puts('-')
     def visit_LitName(self, node):
         self.outp.puts(node.n)
     def visit_LitString(self, node):
@@ -893,13 +904,13 @@ class Parser(Parser00):
         return LiuD_basestrn(v)
 
     def hdl_baseitem(self):
-        v = self.handle_syntaxdef()
-        if v is not None:
-            return v
         v = self.handle_ifnext()
         if v is not None:
             return v
         v = self.handle_ifnotnext()
+        if v is not None:
+            return v
+        v = self.hdl_skipdef()
         if v is not None:
             return v
         v = self.handle_itemq()
@@ -1019,7 +1030,7 @@ class Parser(Parser00):
             return None
         sav1 = self.getpos()
         self.SkipComments(self.ignore_wspace)
-        v2q = self.handle_syntaxdef()
+        v2q = self.hdl_skipdef()
         if v2q is None:
             self.setpos(sav1)
         self.SkipComments(self.ignore_wspace)
@@ -1028,7 +1039,7 @@ class Parser(Parser00):
             return None
         sav2 = self.getpos()
         self.SkipComments(self.ignore_wspace)
-        v3q = self.handle_syntaxdef()
+        v3q = self.hdl_skipdef()
         if v3q is None:
             self.setpos(sav2)
         self.SkipComments(self.ignore_wspace)
@@ -1046,7 +1057,7 @@ class Parser(Parser00):
             return None
         sav1 = self.getpos()
         self.SkipComments(self.ignore_wspace)
-        v2q = self.handle_syntaxdef()
+        v2q = self.hdl_skipdef()
         if v2q is None:
             self.setpos(sav1)
         self.SkipComments(self.ignore_wspace)
@@ -1055,7 +1066,7 @@ class Parser(Parser00):
             return None
         sav2 = self.getpos()
         self.SkipComments(self.ignore_wspace)
-        v3q = self.handle_syntaxdef()
+        v3q = self.hdl_skipdef()
         if v3q is None:
             self.setpos(sav2)
         self.SkipComments(self.ignore_wspace)
@@ -1090,6 +1101,12 @@ class Parser(Parser00):
             return None
         return LiuD_optgroup(vlst)
 
+    def hdl_skipdef(self):
+        v = self.handle_syntaxdef()
+        if v is not None:
+            return v
+        return self.handle_noskip()
+
     def handle_syntaxdef(self):
         sav0 = self.getpos()
         if self.handle_OpChar('-(') is None:
@@ -1103,6 +1120,14 @@ class Parser(Parser00):
             self.setpos(sav0)
             return None
         return LiuD_syntaxdef(n)
+
+    def handle_noskip(self):
+        sav0 = self.getpos()
+        self.SkipComments(self.ignore_wspace)
+        if self.handle_OpChar('-') is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_noskip()
 
     def handle_LitName(self):
         sav0 = self.getpos()
@@ -1341,19 +1366,20 @@ taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
             | LitName
             | LitString
             | ( ident : ('+ident' | '=ident' | '-ident')$ )
-        base1 :: ( basestrn : (strings | LitName) -(no) '$' )
+        base1 :: ( basestrn : (strings | LitName) - '$' )
             | base0
-        baseitem :: syntaxdef
-            | ( ifnext(slst*) : '-ifnext(' STRING ^+ '|' ')' )
+        baseitem :: ( ifnext(slst*) : '-ifnext(' STRING ^+ '|' ')' )
             | ( ifnotnext(slst*) : '-ifnotnext(' STRING ^+ '|' ')' )
-            | ( itemq : base1 -(no) '?' )
-            | ( itemd : base1 -(no) '*' )
-            | ( itemp : base0 -(no) '+' )
-            | ( jiad(v1,v2q?,v3q?,v4) : base0 syntaxdef? '^*' syntaxdef? base1 )
-            | ( jiap(v1,v2q?,v3q?,v4) : base0 syntaxdef? '^+' syntaxdef? base1 )
+            | skipdef
+            | ( itemq : base1 - '?' )
+            | ( itemd : base1 - '*' )
+            | ( itemp : base0 - '+' )
+            | ( jiad(v1,v2q?,v3q?,v4) : base0 skipdef? '^*' skipdef? base1 )
+            | ( jiap(v1,v2q?,v3q?,v4) : base0 skipdef? '^+' skipdef? base1 )
             | ( optgroup(vlst*) : '[' base0+ ']' )
             | base1
-            syntaxdef : '-(' -(no) NAME -(no) ')'
+            skipdef :: ( syntaxdef : '-(' - NAME - ')' )
+                | ( noskip : '-' )
         LitName : NAME
         LitString : STRING
 }
@@ -1365,8 +1391,8 @@ stmt :: stmtone NEWLINE$
 
 stmt_inline(s, vargq?, v) : NAME ['(' arg ')'] '::' taxvalue
 stmt_tax(s, vq?, v) : NAME ['(' args ')'] ':' taxvalue
-    args(vlst*) : arg ^+ ',' -(no)
-        arg(s, sq?) : NAME -(no) ('?' | '*')$?
+    args(vlst*) : arg ^+ ','
+        arg(s, sq?) : NAME - ('?' | '*')$?
 
 .syntax crlf
 protoGroup : NAME '{' stmt* '}'

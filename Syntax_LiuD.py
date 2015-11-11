@@ -32,19 +32,20 @@ taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
             | LitName
             | LitString
             | ( ident : ('+ident' | '=ident' | '-ident')$ )
-        base1 :: ( basestrn : (strings | LitName) -(no) '$' )
+        base1 :: ( basestrn : (strings | LitName) - '$' )
             | base0
-        baseitem :: syntaxdef
-            | ( ifnext(slst*) : '-ifnext(' STRING ^+ '|' ')' )
+        baseitem :: ( ifnext(slst*) : '-ifnext(' STRING ^+ '|' ')' )
             | ( ifnotnext(slst*) : '-ifnotnext(' STRING ^+ '|' ')' )
-            | ( itemq : base1 -(no) '?' )
-            | ( itemd : base1 -(no) '*' )
-            | ( itemp : base0 -(no) '+' )
-            | ( jiad(v1,v2q?,v3q?,v4) : base0 syntaxdef? '^*' syntaxdef? base1 )
-            | ( jiap(v1,v2q?,v3q?,v4) : base0 syntaxdef? '^+' syntaxdef? base1 )
+            | skipdef
+            | ( itemq : base1 - '?' )
+            | ( itemd : base1 - '*' )
+            | ( itemp : base0 - '+' )
+            | ( jiad(v1,v2q?,v3q?,v4) : base0 skipdef? '^*' skipdef? base1 )
+            | ( jiap(v1,v2q?,v3q?,v4) : base0 skipdef? '^+' skipdef? base1 )
             | ( optgroup(vlst*) : '[' base0+ ']' )
             | base1
-            syntaxdef : '-(' -(no) NAME -(no) ')'
+            skipdef :: ( syntaxdef : '-(' - NAME - ')' )
+                | ( noskip : '-' )
         LitName : NAME
         LitString : STRING
 }
@@ -56,8 +57,8 @@ stmt :: stmtone NEWLINE$
 
 stmt_inline(s, vargq?, v) : NAME ['(' arg ')'] '::' taxvalue
 stmt_tax(s, vq?, v) : NAME ['(' args ')'] ':' taxvalue
-    args(vlst*) : arg ^+ ',' -(no)
-        arg(s, sq?) : NAME -(no) ('?' | '*')$?
+    args(vlst*) : arg ^+ ','
+        arg(s, sq?) : NAME - ('?' | '*')$?
 
 .syntax crlf
 protoGroup : NAME '{' stmt* '}'
@@ -91,6 +92,7 @@ jiad : x x? '^*' x? x
 jiap : x x? '^+' x? x
 optgroup : '[' x* ']'
 syntaxdef : '-(' - x - ')'
+noskip : '-'
 dot_syntax : '.syntax' x
 stmt_inline : x ['(' x ')'] '::' x
 stmt_tax : x ['(' x ')'] ':' x
@@ -101,6 +103,4 @@ Module : (x NL)*
 
 s_sample = s_tree # describe myself
 
-# if 'stmt : aa ^+ b' or 'stmt : aa*' , when aa occurs only once, then return a instead of [a]
-# -(no) will change to - next version
 # add -ifnext(NAME) support
