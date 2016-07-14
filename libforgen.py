@@ -190,6 +190,7 @@ class Visit_00(LiuD_sample_visitor_01):
                 if a1 == a2 == 's':
                     r0 = 's', '.s'
                     continue
+                print 'error choice', a1, a2
                 assert False
         return [r0]
     def combintype(self,b1,b2):
@@ -239,7 +240,7 @@ class Visit_00(LiuD_sample_visitor_01):
         result = node.v.walkabout(self)
         if result is None:
             return None
-        assert len(result) == 1
+        assert len(result) == 1, len(result)
         return [(result[0][0] + 'lst', result[0][1] + '*')]
     def visit_itemp(self, node):
         result = node.v.walkabout(self)

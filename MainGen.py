@@ -2,18 +2,7 @@
 # LiuTaoTao github.com/Bookaa/LiuD
 
 
-#import lib
-#import Re2
-#lib.HowRe = Re2.HowRe_liud
-
-def GenSource():
-    import sys
-
-    if len(sys.argv) != 3:
-        return 0
-
-    a1 = sys.argv[1]
-
+def GenSource(a1, a2):
     if a1 == 'Swift':
         import Syntax_Swift as SyntaxIn
     elif a1 == 'LiuD':
@@ -28,10 +17,10 @@ def GenSource():
         import Syntax_LangL as SyntaxIn
     elif a1 == 'Z':
         import Syntax_Z as SyntaxIn
+    elif a1.endswith('.py'):
+        SyntaxIn = __import__(a1[:-3])
     else:
         return 0
-
-    a2 = sys.argv[2]
 
     if a2 == 'py':
         from GenPythonSrc import GenPythonSrc
@@ -44,8 +33,12 @@ def GenSource():
     return 1
 
 if __name__ == '__main__':
-    if 0 == GenSource():
+    import sys
+
+    if len(sys.argv) != 3:
         print 'usage:'
         print '    MainGen LiuD py'
         print '    MainGen Python py'
+    else:
+        GenSource(sys.argv[1], sys.argv[2])
 

@@ -178,6 +178,7 @@ class Visit_Gen02(LiuD_sample_visitor_01):
                 outp.prtln('%s = self.%s' % (vname, Word_or_Symbol(v2.s)))
             elif isinstance(v2, LiuD_LitName):
                 outp.prtln('%s' % self.handle_LitName(v2))
+                return
             else:
                 assert False
             if savflg:
@@ -957,6 +958,30 @@ def PrtOpt2(node, arglst, ignoresyntax, grmlst):
             outp.prtln('v1 = %s_%s(v1, op, v2)' % (SynName, node.s))
             outp.prtln('return self.step%d_%s(v1)' % (no, node.s))
             outp.up()
+        elif isinstance(v, LiuD_LitString):
+            outp.prtln("")
+            outp.prtln('def step%d_%s(self, v1):' % (no, node.s))
+            outp.down()
+            if no > 1:
+                outp.prtln('v1 = self.step%d_%s(v1)' % (no-1, node.s))
+            outp.prtln('sav0 = self.getpos()')
+            if ignoresyntax != '-':
+                outp.prtln('self.SkipComments(self.ignore_%s)' % ignoresyntax)
+            outp.prtln('op = self.handle_OpChar(%s)' % PythonString(v.s))
+            outp.prtln('if op is None:')
+            outp.prtln('self.setpos(sav0)', 1)
+            outp.prtln('return v1', 1)
+            if ignoresyntax != '-':
+                outp.prtln('self.SkipComments(self.ignore_%s)' % ignoresyntax)
+            outp.prtln('v2 = %s' % s9)
+            outp.prtln('if v2 is None:')
+            outp.prtln('self.setpos(sav0)', 1)
+            outp.prtln('return v1', 1)
+            if no > 1:
+                outp.prtln('v2 = self.step%d_%s(v2)' % (no-1, node.s))
+            outp.prtln('v1 = %s_%s(v1, op, v2)' % (SynName, node.s))
+            outp.prtln('return self.step%d_%s(v1)' % (no, node.s))
+            outp.up()
         else:
             assert False
 
@@ -1206,7 +1231,7 @@ def GetOutNode(mod, name):
     for v in mod.vlst:
         if v.s == name:
             return v
-    assert False
+    assert False, 'not find %s' % name 
 
 def gen_Out_01(outdef, grmlst):
     mod2 = Test_Parse_Out(outdef)
