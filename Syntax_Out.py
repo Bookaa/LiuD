@@ -2,11 +2,6 @@
 
 SynName = 'Out'
 
-ignores = {
-    'crlf'   : ( ' \t\n', [ r'/\*(.|\n)*?\*/' ] ),
-    'wspace' : ( ' \t', [ r'/\*(.|\n)*?\*/' ] ),
-}
-
 base_def = { 'NEWLINE' :    ('',    '\\n+'),
              'NAME'    :    ('Name',  '[A-Za-z_][A-Za-z0-9_]*'),
              'STRING'  :    ('String',  r"'(.|\n)*?'")

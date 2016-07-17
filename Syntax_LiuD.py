@@ -2,20 +2,16 @@
 
 SynName = 'LiuD'
 
-ignores = {
-    'crlf'   : ( ' \t\n', [ r'/\*(.|\n)*?\*/' ] ),
-    'wspace' : ( ' \t', [ r'/\*(.|\n)*?\*/' ] ),
-    'no'     : ( '', [] )
-}
-
 base_def = { 'NEWLINE' :    ('',   '\\n+'),
              'NAME'    :    ('Name',  '[A-Za-z_][A-Za-z0-9_]*'),
              'STRING'  :    ('String',  "'.*?'")
              }
 
-s_tree = '''
+s_tree = r'''
 .set_linecomment '\/\/'
 // this is comment
+.set_blockcomment '/\*' '\*/'
+/* comment again */
 
 .syntax wspace
 
@@ -55,6 +51,7 @@ taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
 stmt :: stmtone NEWLINE$
     stmtone :: ( dot_syntax : '.syntax' (NAME | '-'$) )
         | ( set_linecomment : '.set_linecomment' STRING )
+        | ( set_blockcomment : '.set_blockcomment' STRING STRING )
         | stmt_inline
         | stmt_tax
         | protoGroup
@@ -99,6 +96,7 @@ syntaxdef : '-(' - x - ')'
 noskip : '-'
 dot_syntax : '.syntax' x
 set_linecomment : '.set_linecomment' x
+set_blockcomment : '.set_blockcomment' x x
 stmt_inline : x ['(' x ')'] '::' x
 stmt_tax : x ['(' x ')'] ':' x
 args : x ^* ','
@@ -107,5 +105,3 @@ Module : (x NL)*
 '''
 
 s_sample = s_tree # describe myself
-
-# add -ifnext(NAME) support

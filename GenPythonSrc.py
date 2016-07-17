@@ -41,6 +41,8 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         assert False
     def visit_set_linecomment(self, node):
         assert False
+    def visit_set_blockcomment(self, node):
+        assert False
     def visit_stmt_tax(self, node):
         node.v.walkabout(self)
     def visit_jiad(self, node):
@@ -603,17 +605,17 @@ def IfWordStr(s):
     return False
 
 class CommentsStatus:
-    def __init__(self, lst_skips, ignoresyntax, linecmt):
-        self.all = (lst_skips, ignoresyntax, linecmt)
+    def __init__(self, lst_skips, ignoresyntax, linecmt, blockcmt):
+        self.all = (lst_skips, ignoresyntax, linecmt, blockcmt)
 
     def getskipn(self, s=''):
-        (lst_skips, ignoresyntax, linecmt) = self.all
+        (lst_skips, ignoresyntax, linecmt, blockcmt) = self.all
         if s == '':
             s = ignoresyntax
         ignoresyntax = s
         if ignoresyntax == '-' and linecmt == '':
             return -1
-        return lst_skips.index((ignoresyntax, linecmt))
+        return lst_skips.index((ignoresyntax, linecmt, blockcmt))
 
 def GenPython02(grmlst, ignore_lst):
     outp = OutP()
@@ -634,18 +636,22 @@ class Parser(Parser00):
         if True:
             lst_skips = []
             for nodeinfo in grmlst.iter_all():
-                (node, arglst, ignoresyntax, linecmt) = (nodeinfo.node, nodeinfo.arglst, nodeinfo.ign_syntax, nodeinfo.linecmt)
-                if (ignoresyntax, linecmt) == ('-', ''):
+                (node, arglst, ignoresyntax, linecmt, blockcmt) = (nodeinfo.node, nodeinfo.arglst, nodeinfo.ign_syntax, nodeinfo.linecmt, nodeinfo.blockcmt)
+                if (ignoresyntax, linecmt, blockcmt) == ('-', '', None):
                     continue
-                if (ignoresyntax, linecmt) not in lst_skips:
-                    lst_skips.append((ignoresyntax, linecmt))
+                if (ignoresyntax, linecmt, blockcmt) not in lst_skips:
+                    lst_skips.append((ignoresyntax, linecmt, blockcmt))
             outp.prtln('self.skips = [')
-            for (ignoresyntax, linecmt) in lst_skips:
+            for (ignoresyntax, linecmt, blockcmt) in lst_skips:
                 syntax = ignore_lst[ignoresyntax]
                 s1 = PythonString(syntax[0])
-                s2 = str(syntax[1])
+                lsts2 = syntax[1]
                 if linecmt:
-                    s2 = str(syntax[1] + ['%s.*' % linecmt])
+                    lsts2.append('%s.*' % linecmt)
+                if blockcmt:
+                    (lh, rh) = blockcmt
+                    lsts2.append(r'%s(.|\n)*?%s' % (lh, rh))
+                s2 = str(lsts2)
                 outp.prtln('    IgnoreCls(%s, %s),' % (s1, s2))
             outp.prtln(']')
 
@@ -674,8 +680,8 @@ class Parser(Parser00):
                 outp.prtln('return self.handle_Lex(self.lex_%s)' % name, 1)
 
     for nodeinfo in grmlst.iter_all():
-        (node, arglst, ignoresyntax, linecmt) = (nodeinfo.node, nodeinfo.arglst, nodeinfo.ign_syntax, nodeinfo.linecmt)
-        cmtsts = CommentsStatus(lst_skips, ignoresyntax, linecmt)
+        (node, arglst, ignoresyntax, linecmt, blockcmt) = (nodeinfo.node, nodeinfo.arglst, nodeinfo.ign_syntax, nodeinfo.linecmt, nodeinfo.blockcmt)
+        cmtsts = CommentsStatus(lst_skips, ignoresyntax, linecmt, blockcmt)
         print
         if node.s == 'syntaxdef':
             pass
@@ -732,7 +738,7 @@ class Parser(Parser00):
             assert visit.argno == len(arglst)
 
 def PrtStmtInline(node, arglst, grmlst, cmtsts):
-    (lst_skips, ignoresyntax, linecmt) = cmtsts.all
+    (lst_skips, ignoresyntax, linecmt, blockcmt) = cmtsts.all
     skipn = cmtsts.getskipn()
 
     outp = OutP(1)
@@ -957,7 +963,7 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
 
 
 def PrtNoArg(node, grmlst, cmtsts):
-    (lst_skips, ignoresyntax, linecmt) = cmtsts.all
+    (lst_skips, ignoresyntax, linecmt, blockcmt) = cmtsts.all
     outp = OutP(2)
     visit = Visit_Gen02(ignoresyntax, [], grmlst)
     visit.cmtsts = cmtsts
@@ -971,7 +977,7 @@ def PrtNoArg(node, grmlst, cmtsts):
 
 
 def PrtOpt2(node, arglst, grmlst, cmtsts):
-    (lst_skips, ignoresyntax, linecmt) = cmtsts.all
+    (lst_skips, ignoresyntax, linecmt, blockcmt) = cmtsts.all
     skipn = cmtsts.getskipn()
 
     outp = OutP(1)
@@ -1196,9 +1202,11 @@ def GenPythonSrc(SyntaxIn):
     libforgen.base_def = base_def
     libforgen.Dest = 'py'
 
-    syntax_lst = SyntaxIn.ignores #(('crlf', SyntaxIn.syntax_crlf),
-                  #('wspace', SyntaxIn.syntax_wspace),
-                  #('no', SyntaxIn.syntax_no) )
+    syntax_lst = { # this is default comment syntax
+        'crlf'   : ( ' \t\n', [  ] ),
+        'wspace' : ( ' \t',   [  ] ),
+        'no'     : ( '', [] )
+    }
 
     mod = parser.handle_Module()
     if mod is None:

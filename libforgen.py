@@ -337,11 +337,12 @@ class Visit_00(LiuD_sample_visitor_01):
         return None
 
 class LiudNodeInfo:
-    def __init__(self, node, syntax, protcl, linecmt):
+    def __init__(self, node, syntax, protcl, linecmt, blockcomment):
         self.node = node
         self.ign_syntax = syntax
         self.protcl = protcl
         self.linecmt = linecmt
+        self.blockcmt = blockcomment
 
 class Visit_Gen01(LiuD_sample_visitor_01):
     def __init__(self):
@@ -350,6 +351,7 @@ class Visit_Gen01(LiuD_sample_visitor_01):
         self.dic = {}
         self.cur_protocol = 'AST' #_%s' % SynName
         self.linecomment = ''
+        self.blockcomment = None
     def visit_protoGroup(self, node):
         sav = self.cur_protocol
         self.cur_protocol = node.n
@@ -360,14 +362,16 @@ class Visit_Gen01(LiuD_sample_visitor_01):
         self.cur_syntax = node.n
     def visit_set_linecomment(self, node):
         self.linecomment = node.s
+    def visit_set_blockcomment(self, node):
+        self.blockcomment = (node.s1, node.s2)
     def visit_stmt_tax(self, node):
         self.lst0.append(node.s)
-        self.dic[node.s] = LiudNodeInfo(node, self.cur_syntax, self.cur_protocol, self.linecomment)
+        self.dic[node.s] = LiudNodeInfo(node, self.cur_syntax, self.cur_protocol, self.linecomment, self.blockcomment)
 
         node.v.walkabout(self)
     def visit_stmt_inline(self, node):
         self.lst0.append(node.s)
-        self.dic[node.s] = LiudNodeInfo(node, self.cur_syntax, self.cur_protocol, self.linecomment)
+        self.dic[node.s] = LiudNodeInfo(node, self.cur_syntax, self.cur_protocol, self.linecomment, self.blockcomment)
 
         node.v.walkabout(self)
     def AllLst(self):

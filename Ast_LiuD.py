@@ -222,6 +222,15 @@ class LiuD_set_linecomment:
         return visitor.visit_set_linecomment(self)
 
 
+class LiuD_set_blockcomment:
+    def __init__(self, s1, s2):
+        self.s1 = s1
+        self.s2 = s2
+
+    def walkabout(self, visitor):
+        return visitor.visit_set_blockcomment(self)
+
+
 class LiuD_stmt_inline:
     def __init__(self, s, vargq, v):
         self.s = s
@@ -303,6 +312,7 @@ class LiuD_sample_visitor_00:
     def visit_LitString(self, node): pass
     def visit_dot_syntax(self, node): pass
     def visit_set_linecomment(self, node): pass
+    def visit_set_blockcomment(self, node): pass
     def visit_stmt_inline(self, node): pass
     def visit_stmt_tax(self, node): pass
     def visit_args(self, node): pass
@@ -381,6 +391,8 @@ class LiuD_sample_visitor_01:
     def visit_dot_syntax(self, node):
         pass
     def visit_set_linecomment(self, node):
+        pass
+    def visit_set_blockcomment(self, node):
         pass
     def visit_stmt_inline(self, node):
         if node.vargq is not None:
@@ -541,6 +553,10 @@ class LiuD_out_visitor_01:
     def visit_set_linecomment(self, node):
         self.outp.puts('.set_linecomment')
         self.outp.puts(node.s)
+    def visit_set_blockcomment(self, node):
+        self.outp.puts('.set_blockcomment')
+        self.outp.puts(node.s1)
+        self.outp.puts(node.s2)
     def visit_stmt_inline(self, node):
         self.outp.puts(node.s)
         if node.vargq is not None:
@@ -589,8 +605,8 @@ class Parser(Parser00):
         Parser00.__init__(self, srctxt)
 
         self.skips = [
-            IgnoreCls(' \t', ['/\\*(.|\\n)*?\\*/', '\\/\\/.*']),
-            IgnoreCls(' \t\n', ['/\\*(.|\\n)*?\\*/', '\\/\\/.*']),
+            IgnoreCls(' \t', ['\\/\\/.*', '/\\*(.|\\n)*?\\*/']),
+            IgnoreCls(' \t\n', ['\\/\\/.*', '/\\*(.|\\n)*?\\*/']),
         ]
         self.lex_NEWLINE = HowRe('\\n+')
         self.lex_NAME = HowRe('[A-Za-z_][A-Za-z0-9_]*')
@@ -1178,6 +1194,9 @@ class Parser(Parser00):
         v = self.handle_set_linecomment()
         if v is not None:
             return v
+        v = self.handle_set_blockcomment()
+        if v is not None:
+            return v
         v = self.handle_stmt_inline()
         if v is not None:
             return v
@@ -1211,6 +1230,23 @@ class Parser(Parser00):
             self.setpos(sav0)
             return None
         return LiuD_set_linecomment(s)
+
+    def handle_set_blockcomment(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('.set_blockcomment') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        s1 = self.handle_STRING()
+        if s1 is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        s2 = self.handle_STRING()
+        if s2 is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_set_blockcomment(s1, s2)
 
     def handle_stmt_inline(self):
         sav0 = self.getpos()
@@ -1381,6 +1417,8 @@ def Test_Out_LiuD(mod):
 s_sample_LiuD = r'''
 .set_linecomment '\/\/'
 // this is comment
+.set_blockcomment '/\*' '\*/'
+/* comment again */
 
 .syntax wspace
 
@@ -1420,6 +1458,7 @@ taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
 stmt :: stmtone NEWLINE$
     stmtone :: ( dot_syntax : '.syntax' (NAME | '-'$) )
         | ( set_linecomment : '.set_linecomment' STRING )
+        | ( set_blockcomment : '.set_blockcomment' STRING STRING )
         | stmt_inline
         | stmt_tax
         | protoGroup
