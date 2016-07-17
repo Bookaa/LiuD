@@ -214,6 +214,14 @@ class LiuD_dot_syntax:
         return visitor.visit_dot_syntax(self)
 
 
+class LiuD_set_linecomment:
+    def __init__(self, s):
+        self.s = s
+
+    def walkabout(self, visitor):
+        return visitor.visit_set_linecomment(self)
+
+
 class LiuD_stmt_inline:
     def __init__(self, s, vargq, v):
         self.s = s
@@ -294,6 +302,7 @@ class LiuD_sample_visitor_00:
     def visit_LitName(self, node): pass
     def visit_LitString(self, node): pass
     def visit_dot_syntax(self, node): pass
+    def visit_set_linecomment(self, node): pass
     def visit_stmt_inline(self, node): pass
     def visit_stmt_tax(self, node): pass
     def visit_args(self, node): pass
@@ -370,6 +379,8 @@ class LiuD_sample_visitor_01:
     def visit_LitString(self, node):
         pass
     def visit_dot_syntax(self, node):
+        pass
+    def visit_set_linecomment(self, node):
         pass
     def visit_stmt_inline(self, node):
         if node.vargq is not None:
@@ -527,6 +538,9 @@ class LiuD_out_visitor_01:
     def visit_dot_syntax(self, node):
         self.outp.puts('.syntax')
         self.outp.puts(node.n)
+    def visit_set_linecomment(self, node):
+        self.outp.puts('.set_linecomment')
+        self.outp.puts(node.s)
     def visit_stmt_inline(self, node):
         self.outp.puts(node.s)
         if node.vargq is not None:
@@ -574,10 +588,10 @@ class Parser(Parser00):
     def __init__(self, srctxt):
         Parser00.__init__(self, srctxt)
 
-        self.ignore_wspace = IgnoreCls(' \t', ['/\\*(.|\\n)*?\\*/'])
-        self.ignore_crlf = IgnoreCls(' \t\n', ['//.*', '/\\*(.|\\n)*?\\*/'])
-        self.ignore_no = IgnoreCls('', [])
-        
+        self.skips = [
+            IgnoreCls(' \t', ['/\\*(.|\\n)*?\\*/', '\\/\\/.*']),
+            IgnoreCls(' \t\n', ['/\\*(.|\\n)*?\\*/', '\\/\\/.*']),
+        ]
         self.lex_NEWLINE = HowRe('\\n+')
         self.lex_NAME = HowRe('[A-Za-z_][A-Za-z0-9_]*')
         self.lex_STRING = HowRe("'.*?'")
@@ -610,15 +624,15 @@ class Parser(Parser00):
         if s is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar('^-') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar('(') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         vlst = []
         sav1 = self.getpos()
         while True:
@@ -627,12 +641,12 @@ class Parser(Parser00):
                 break
             vlst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
         if not vlst:
             self.setpos(sav0)
             return None
         self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
@@ -645,10 +659,10 @@ class Parser(Parser00):
         vlst = [tem1]
         while True:
             sav0 = self.getpos()
-            self.SkipComments(self.ignore_crlf)
+            self.Skip(1)
             if not self.handle_OpChar('|'):
                 break
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
             v3 = self.hdl_taxone()
             if v3 is None:
                 break
@@ -663,7 +677,7 @@ class Parser(Parser00):
         if self.handle_OpChar('+') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         vlst = []
         sav1 = self.getpos()
         while True:
@@ -672,13 +686,13 @@ class Parser(Parser00):
                 break
             vlst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
         self.setpos(sav1)
         return LiuD_MoreDef(vlst)
 
     def handle_OtherSyntax(self):
         sav0 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar('$NewSyntax') is None:
             self.setpos(sav0)
             return None
@@ -695,7 +709,7 @@ class Parser(Parser00):
         if self.handle_OpChar('(') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         slst = []
         sav1 = self.getpos()
         while True:
@@ -704,15 +718,15 @@ class Parser(Parser00):
                 break
             slst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
             if not self.handle_OpChar('|'):
                 break
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
         if not slst:
             self.setpos(sav0)
             return None
         self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
@@ -729,12 +743,12 @@ class Parser(Parser00):
         if self.handle_OpChar('(') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         v = self.handle_stmt_tax()
         if v is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
@@ -747,7 +761,7 @@ class Parser(Parser00):
         vlst = [tem1]
         while True:
             sav0 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
             v3 = self.hdl_baseitem()
             if v3 is None:
                 break
@@ -783,7 +797,7 @@ class Parser(Parser00):
         if self.handle_OpChar('(') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         vlst = []
         sav1 = self.getpos()
         while True:
@@ -792,12 +806,12 @@ class Parser(Parser00):
                 break
             vlst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
         if not vlst:
             self.setpos(sav0)
             return None
         self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
@@ -808,7 +822,7 @@ class Parser(Parser00):
         if self.handle_OpChar('(') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         vlst = []
         sav1 = self.getpos()
         while True:
@@ -817,15 +831,15 @@ class Parser(Parser00):
                 break
             vlst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
             if not self.handle_OpChar('|'):
                 break
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
         if not vlst:
             self.setpos(sav0)
             return None
         self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
@@ -836,21 +850,21 @@ class Parser(Parser00):
         if self.handle_OpChar('Bool(') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         s1 = self.handle_STRING()
         if s1 is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(',') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         s2 = self.handle_STRING()
         if s2 is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
@@ -861,12 +875,12 @@ class Parser(Parser00):
         if self.handle_OpChar('Bool(') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         s = self.handle_STRING()
         if s is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
@@ -938,7 +952,7 @@ class Parser(Parser00):
         if self.handle_OpChar('-ifnext(') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         slst = []
         sav1 = self.getpos()
         while True:
@@ -947,15 +961,15 @@ class Parser(Parser00):
                 break
             slst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
             if not self.handle_OpChar('|'):
                 break
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
         if not slst:
             self.setpos(sav0)
             return None
         self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
@@ -966,7 +980,7 @@ class Parser(Parser00):
         if self.handle_OpChar('-ifnotnext(') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         slst = []
         sav1 = self.getpos()
         while True:
@@ -975,15 +989,15 @@ class Parser(Parser00):
                 break
             slst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
             if not self.handle_OpChar('|'):
                 break
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
         if not slst:
             self.setpos(sav0)
             return None
         self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
@@ -1029,20 +1043,20 @@ class Parser(Parser00):
             self.setpos(sav0)
             return None
         sav1 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         v2q = self.hdl_skipdef()
         if v2q is None:
             self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar('^*') is None:
             self.setpos(sav0)
             return None
         sav2 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         v3q = self.hdl_skipdef()
         if v3q is None:
             self.setpos(sav2)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         v4 = self.hdl_base1()
         if v4 is None:
             self.setpos(sav0)
@@ -1056,20 +1070,20 @@ class Parser(Parser00):
             self.setpos(sav0)
             return None
         sav1 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         v2q = self.hdl_skipdef()
         if v2q is None:
             self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar('^+') is None:
             self.setpos(sav0)
             return None
         sav2 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         v3q = self.hdl_skipdef()
         if v3q is None:
             self.setpos(sav2)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         v4 = self.hdl_base1()
         if v4 is None:
             self.setpos(sav0)
@@ -1081,7 +1095,7 @@ class Parser(Parser00):
         if self.handle_OpChar('[') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         vlst = []
         sav1 = self.getpos()
         while True:
@@ -1090,12 +1104,12 @@ class Parser(Parser00):
                 break
             vlst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
         if not vlst:
             self.setpos(sav0)
             return None
         self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(']') is None:
             self.setpos(sav0)
             return None
@@ -1123,7 +1137,7 @@ class Parser(Parser00):
 
     def handle_noskip(self):
         sav0 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar('-') is None:
             self.setpos(sav0)
             return None
@@ -1151,7 +1165,7 @@ class Parser(Parser00):
         if v is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_NEWLINE() is None:
             self.setpos(sav0)
             return None
@@ -1159,6 +1173,9 @@ class Parser(Parser00):
 
     def hdl_stmtone(self):
         v = self.handle_dot_syntax()
+        if v is not None:
+            return v
+        v = self.handle_set_linecomment()
         if v is not None:
             return v
         v = self.handle_stmt_inline()
@@ -1174,7 +1191,7 @@ class Parser(Parser00):
         if self.handle_OpChar('.syntax') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         n = self.handle_NAME()
         if n is None:
             n = self.handle_OpChar('-')
@@ -1182,6 +1199,18 @@ class Parser(Parser00):
             self.setpos(sav0)
             return None
         return LiuD_dot_syntax(n)
+
+    def handle_set_linecomment(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('.set_linecomment') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        s = self.handle_STRING()
+        if s is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_set_linecomment(s)
 
     def handle_stmt_inline(self):
         sav0 = self.getpos()
@@ -1191,27 +1220,27 @@ class Parser(Parser00):
             return None
         flag = True
         sav1 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar('(') is None:
             flag = False
         vargq = None
         if flag:
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
             vargq = self.handle_arg()
             if vargq is None:
                 flag = False
         if flag:
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
             if self.handle_OpChar(')') is None:
                 flag = False
         if not flag:
             vargq = None
             self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar('::') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         v = self.hdl_taxvalue()
         if v is None:
             self.setpos(sav0)
@@ -1226,27 +1255,27 @@ class Parser(Parser00):
             return None
         flag = True
         sav1 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar('(') is None:
             flag = False
         vq = None
         if flag:
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
             vq = self.handle_args()
             if vq is None:
                 flag = False
         if flag:
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
             if self.handle_OpChar(')') is None:
                 flag = False
         if not flag:
             vq = None
             self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(':') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         v = self.hdl_taxvalue()
         if v is None:
             self.setpos(sav0)
@@ -1263,10 +1292,10 @@ class Parser(Parser00):
                 break
             vlst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
             if not self.handle_OpChar(','):
                 break
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
         if not vlst:
             self.setpos(sav0)
             return None
@@ -1290,11 +1319,11 @@ class Parser(Parser00):
         if n is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_crlf)
+        self.Skip(1)
         if self.handle_OpChar('{') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_crlf)
+        self.Skip(1)
         vlst = []
         sav1 = self.getpos()
         while True:
@@ -1303,16 +1332,16 @@ class Parser(Parser00):
                 break
             vlst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_crlf)
+            self.Skip(1)
         self.setpos(sav1)
-        self.SkipComments(self.ignore_crlf)
+        self.Skip(1)
         if self.handle_OpChar('}') is None:
             self.setpos(sav0)
             return None
         return LiuD_protoGroup(n, vlst)
 
     def handle_Module(self):
-        self.SkipComments(self.ignore_crlf)
+        self.Skip(1)
         sav0 = self.getpos()
         vlst = []
         sav1 = self.getpos()
@@ -1322,9 +1351,9 @@ class Parser(Parser00):
                 break
             vlst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_crlf)
+            self.Skip(1)
         self.setpos(sav1)
-        self.SkipComments(self.ignore_crlf)
+        self.Skip(1)
         if self.handle_ENDMARKER() is None:
             self.setpos(sav0)
             return None
@@ -1349,7 +1378,10 @@ def Test_Out_LiuD(mod):
     mod.walkabout(the)
     outp.newline()
 
-s_sample_LiuD = '''
+s_sample_LiuD = r'''
+.set_linecomment '\/\/'
+// this is comment
+
 .syntax wspace
 
 iExpr {
@@ -1387,6 +1419,7 @@ taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
 }
 stmt :: stmtone NEWLINE$
     stmtone :: ( dot_syntax : '.syntax' (NAME | '-'$) )
+        | ( set_linecomment : '.set_linecomment' STRING )
         | stmt_inline
         | stmt_tax
         | protoGroup

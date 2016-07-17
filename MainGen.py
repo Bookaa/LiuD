@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 # LiuTaoTao github.com/Bookaa/LiuD
 

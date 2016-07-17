@@ -3,7 +3,7 @@
 SynName = 'LiuD'
 
 ignores = {
-    'crlf'   : ( ' \t\n', [ '//.*', r'/\*(.|\n)*?\*/' ] ),
+    'crlf'   : ( ' \t\n', [ r'/\*(.|\n)*?\*/' ] ),
     'wspace' : ( ' \t', [ r'/\*(.|\n)*?\*/' ] ),
     'no'     : ( '', [] )
 }
@@ -14,6 +14,9 @@ base_def = { 'NEWLINE' :    ('',   '\\n+'),
              }
 
 s_tree = '''
+.set_linecomment '\/\/'
+// this is comment
+
 .syntax wspace
 
 iExpr {
@@ -51,6 +54,7 @@ taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
 }
 stmt :: stmtone NEWLINE$
     stmtone :: ( dot_syntax : '.syntax' (NAME | '-'$) )
+        | ( set_linecomment : '.set_linecomment' STRING )
         | stmt_inline
         | stmt_tax
         | protoGroup
@@ -94,6 +98,7 @@ optgroup : '[' x* ']'
 syntaxdef : '-(' - x - ')'
 noskip : '-'
 dot_syntax : '.syntax' x
+set_linecomment : '.set_linecomment' x
 stmt_inline : x ['(' x ')'] '::' x
 stmt_tax : x ['(' x ')'] ':' x
 args : x ^* ','

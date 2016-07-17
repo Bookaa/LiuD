@@ -219,9 +219,10 @@ class Parser(Parser00):
     def __init__(self, srctxt):
         Parser00.__init__(self, srctxt)
 
-        self.ignore_wspace = IgnoreCls(' \t', ['/\\*(.|\\n)*?\\*/'])
-        self.ignore_crlf = IgnoreCls(' \t\n', ['//.*', '/\\*(.|\\n)*?\\*/'])
-        
+        self.skips = [
+            IgnoreCls(' \t', ['/\\*(.|\\n)*?\\*/', '\\/\\/.*']),
+            IgnoreCls(' \t\n', ['/\\*(.|\\n)*?\\*/', '\\/\\/.*']),
+        ]
         self.lex_NEWLINE = HowRe('\\n+')
         self.lex_NAME = HowRe('[A-Za-z_][A-Za-z0-9_]*')
         self.lex_STRING = HowRe("'(.|\\n)*?'")
@@ -242,7 +243,7 @@ class Parser(Parser00):
         if v is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_NEWLINE() is None:
             self.setpos(sav0)
             return None
@@ -254,11 +255,11 @@ class Parser(Parser00):
         if s is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(':') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         vlst = []
         sav1 = self.getpos()
         while True:
@@ -267,7 +268,7 @@ class Parser(Parser00):
                 break
             vlst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
         self.setpos(sav1)
         return Out_stmtone(s, vlst)
 
@@ -314,15 +315,15 @@ class Parser(Parser00):
             self.setpos(sav0)
             return None
         sav1 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         vq = self.handle_lnk()
         if vq is None:
             self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar('^*') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         v2 = self.handle_String()
         if v2 is None:
             v2 = self.handle_X()
@@ -344,7 +345,7 @@ class Parser(Parser00):
         if self.handle_OpChar('[') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         vlst = []
         sav1 = self.getpos()
         while True:
@@ -353,12 +354,12 @@ class Parser(Parser00):
                 break
             vlst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
         if not vlst:
             self.setpos(sav0)
             return None
         self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(']') is None:
             self.setpos(sav0)
             return None
@@ -369,7 +370,7 @@ class Parser(Parser00):
         if self.handle_OpChar('(') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         vlst = []
         sav1 = self.getpos()
         while True:
@@ -378,12 +379,12 @@ class Parser(Parser00):
                 break
             vlst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_wspace)
+            self.Skip(0)
         if not vlst:
             self.setpos(sav0)
             return None
         self.setpos(sav1)
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(')*') is None:
             self.setpos(sav0)
             return None
@@ -401,7 +402,7 @@ class Parser(Parser00):
 
     def handle_newline(self):
         sav0 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_NAME('NL') is None:
             self.setpos(sav0)
             return None
@@ -409,7 +410,7 @@ class Parser(Parser00):
 
     def handle_lnk(self):
         sav0 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar('-') is None:
             self.setpos(sav0)
             return None
@@ -417,7 +418,7 @@ class Parser(Parser00):
 
     def handle_Xlst(self):
         sav0 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar('x*') is None:
             self.setpos(sav0)
             return None
@@ -428,21 +429,21 @@ class Parser(Parser00):
         if self.handle_OpChar('x?(') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         s1 = self.handle_STRING()
         if s1 is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(',') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         s2 = self.handle_STRING()
         if s2 is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
@@ -453,12 +454,12 @@ class Parser(Parser00):
         if self.handle_OpChar('x?(') is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         s = self.handle_STRING()
         if s is None:
             self.setpos(sav0)
             return None
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar(')') is None:
             self.setpos(sav0)
             return None
@@ -466,7 +467,7 @@ class Parser(Parser00):
 
     def handle_Xq(self):
         sav0 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_OpChar('x?') is None:
             self.setpos(sav0)
             return None
@@ -474,14 +475,14 @@ class Parser(Parser00):
 
     def handle_X(self):
         sav0 = self.getpos()
-        self.SkipComments(self.ignore_wspace)
+        self.Skip(0)
         if self.handle_NAME('x') is None:
             self.setpos(sav0)
             return None
         return Out_X()
 
     def handle_Module(self):
-        self.SkipComments(self.ignore_crlf)
+        self.Skip(1)
         sav0 = self.getpos()
         vlst = []
         sav1 = self.getpos()
@@ -491,9 +492,9 @@ class Parser(Parser00):
                 break
             vlst.append(v3)
             sav1 = self.getpos()
-            self.SkipComments(self.ignore_crlf)
+            self.Skip(1)
         self.setpos(sav1)
-        self.SkipComments(self.ignore_crlf)
+        self.Skip(1)
         if self.handle_ENDMARKER() is None:
             self.setpos(sav0)
             return None

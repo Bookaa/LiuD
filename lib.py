@@ -73,6 +73,7 @@ class Parser00:
         self.srctxt = srctxt
         self.pos = [0, []]
         self.lastpos = 0
+        self.skips = []
     def getpos(self):
         return (self.pos[0], self.pos[1]+[])
     def setpos(self, sav):
@@ -111,6 +112,9 @@ class Parser00:
             self.pos[0] = m_end; self.updatelast()
             return value
         return None
+
+    def Skip(self, n):
+        self.SkipComments(self.skips[n])
 
     def SkipComments(self, syntax):
         if self.pos[0] >= len(self.srctxt):

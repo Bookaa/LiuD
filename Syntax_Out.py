@@ -3,7 +3,7 @@
 SynName = 'Out'
 
 ignores = {
-    'crlf'   : ( ' \t\n', [ '//.*', r'/\*(.|\n)*?\*/' ] ),
+    'crlf'   : ( ' \t\n', [ r'/\*(.|\n)*?\*/' ] ),
     'wspace' : ( ' \t', [ r'/\*(.|\n)*?\*/' ] ),
 }
 
@@ -13,6 +13,8 @@ base_def = { 'NEWLINE' :    ('',    '\\n+'),
              }
 
 s_tree = '''
+.set_linecomment '\/\/'
+
 .syntax wspace
 
 stmt :: stmtone NEWLINE$
