@@ -47,6 +47,7 @@ stmt :: stmtone NEWLINE$
         | ( set_linecomment : '.set_linecomment' STRING )
         | ( set_blockcomment : '.set_blockcomment' STRING STRING )
         | ( name_prefix : '.name_prefix' NAME )
+        | output_rules
         | stmt_inline
         | stmt_tax
         | protoGroup
@@ -56,48 +57,78 @@ stmt_tax(s, vq?, v) : NAME ['(' args ')'] ':' taxvalue
     args(vlst*) : arg ^+ ','
         arg(s, sq?) : NAME - ('?' | '*')$?
 
+output_rules : 'Output' 'Rules' '{' NEWLINE$? orule* '}'
+
+    orule(s, vlst*) : NAME ':' oitem* NEWLINE$
+
+    oitem :: ( oJiad(v1,vq?,v2) : oX olnk? '^*' (oString | oX) )
+        | ( oString : STRING )
+        | ( ooptgroup(vlst*) : '[' oitem+ ']' )
+        | ( oitemd(vlst*) : '(' oitem+ ')*' )
+        | ( oident : ('+ident' | '-ident')$ )
+        | ( onewline : 'NL' )
+        | ( olnk : '-' )
+        | ( oXlst : 'x*' )
+        | ( oXchoice : 'x?(' STRING ',' STRING ')' )
+        | ( oXif : 'x?(' STRING ')' )
+        | ( oXq : 'x?' )
+        | ( oX : 'x' )
+
 .syntax crlf
 protoGroup : NAME '{' stmt* '}'
 Module(vlst*) : stmt* ENDMARKER$
 
-'''
-
-Out_self = r'''
-MoreDef : '+' - x*
-OtherSyntax : '$NewSyntax'
-protoGroup : x '{' NL (x NL)* '}'
-opt2 : x '^-' '(' x* ')'
-choices : x ^* '\n    |'
-stringchoice : '(' x ^* '|' ')'
-inline : '(' x ')'
-serie : x*
-bracegroup : '(' x* ')'
-bracechoice : '(' x ^* '|' ')'
-BoolChoice : 'Bool(' x ',' x ')'
-BoolIf : 'Bool(' x ')'
-ident : x
-basestrn : x - '$'
-LitName : x
-LitString : x
-ifnext : '-ifnext(' x ^* '|' ')'
-ifnotnext : '-ifnotnext(' x ^* '|' ')'
-itemq : x - '?'
-itemd : x - '*'
-itemp : x - '+'
-jiad : x x? '^*' x? x
-jiap : x x? '^+' x? x
-optgroup : '[' x* ']'
-syntaxdef : '-(' - x - ')'
-noskip : '-'
-dot_syntax : '.syntax' x
-set_linecomment : '.set_linecomment' x
-set_blockcomment : '.set_blockcomment' x x
-name_prefix : '.name_prefix' x
-stmt_inline : x ['(' x ')'] '::' x
-stmt_tax : x ['(' x ')'] ':' x
-args : x ^* ','
-arg : x [- x]
-Module : (x NL)*
+Output Rules {
+    MoreDef : '+' - x*
+    OtherSyntax : '$NewSyntax'
+    protoGroup : x '{' NL (x NL)* '}'
+    opt2 : x '^-' '(' x* ')'
+    choices : x ^* '\n    |'
+    stringchoice : '(' x ^* '|' ')'
+    inline : '(' x ')'
+    serie : x*
+    bracegroup : '(' x* ')'
+    bracechoice : '(' x ^* '|' ')'
+    BoolChoice : 'Bool(' x ',' x ')'
+    BoolIf : 'Bool(' x ')'
+    ident : x
+    basestrn : x - '$'
+    LitName : x
+    LitString : x
+    ifnext : '-ifnext(' x ^* '|' ')'
+    ifnotnext : '-ifnotnext(' x ^* '|' ')'
+    itemq : x - '?'
+    itemd : x - '*'
+    itemp : x - '+'
+    jiad : x x? '^*' x? x
+    jiap : x x? '^+' x? x
+    optgroup : '[' x* ']'
+    syntaxdef : '-(' - x - ')'
+    noskip : '-'
+    dot_syntax : '.syntax' x
+    set_linecomment : '.set_linecomment' x
+    set_blockcomment : '.set_blockcomment' x x
+    name_prefix : '.name_prefix' x
+    stmt_inline : x ['(' x ')'] '::' x
+    stmt_tax : x ['(' x ')'] ':' x
+    args : x ^* ','
+    arg : x [- x]
+    Module : (x NL)*
+    output_rules : 'OutPut' 'Rules' '{' NL x* '}'
+    orule : x ':' x* NL
+    oJiad : x x? '^*' x
+    oString : x
+    ooptgroup : '[' x* ']'
+    oitemd : '(' x* ')*'
+    oident : x
+    onewline : 'NL'
+    olnk : '-'
+    oXlst : 'x*'
+    oXchoice : 'x?(' x ',' x ')'
+    oXif : 'x?(' x ')'
+    oXq : 'x?'
+    oX : 'x'
+}
 '''
 
 s_sample = s_tree # describe myself

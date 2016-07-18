@@ -276,6 +276,112 @@ class LiuD_arg:
         return visitor.visit_arg(self)
 
 
+class LiuD_output_rules:
+    def __init__(self, vlst):
+        self.vlst = vlst
+
+    def walkabout(self, visitor):
+        return visitor.visit_output_rules(self)
+
+
+class LiuD_orule:
+    def __init__(self, s, vlst):
+        self.s = s
+        self.vlst = vlst
+
+    def walkabout(self, visitor):
+        return visitor.visit_orule(self)
+
+
+class LiuD_oJiad:
+    def __init__(self, v1, vq, v2):
+        self.v1 = v1
+        self.vq = vq
+        self.v2 = v2
+
+    def walkabout(self, visitor):
+        return visitor.visit_oJiad(self)
+
+
+class LiuD_oString:
+    def __init__(self, s):
+        self.s = s
+
+    def walkabout(self, visitor):
+        return visitor.visit_oString(self)
+
+
+class LiuD_ooptgroup:
+    def __init__(self, vlst):
+        self.vlst = vlst
+
+    def walkabout(self, visitor):
+        return visitor.visit_ooptgroup(self)
+
+
+class LiuD_oitemd:
+    def __init__(self, vlst):
+        self.vlst = vlst
+
+    def walkabout(self, visitor):
+        return visitor.visit_oitemd(self)
+
+
+class LiuD_oident:
+    def __init__(self, s):
+        self.s = s
+
+    def walkabout(self, visitor):
+        return visitor.visit_oident(self)
+
+
+class LiuD_onewline:
+
+    def walkabout(self, visitor):
+        return visitor.visit_onewline(self)
+
+
+class LiuD_olnk:
+
+    def walkabout(self, visitor):
+        return visitor.visit_olnk(self)
+
+
+class LiuD_oXlst:
+
+    def walkabout(self, visitor):
+        return visitor.visit_oXlst(self)
+
+
+class LiuD_oXchoice:
+    def __init__(self, s1, s2):
+        self.s1 = s1
+        self.s2 = s2
+
+    def walkabout(self, visitor):
+        return visitor.visit_oXchoice(self)
+
+
+class LiuD_oXif:
+    def __init__(self, s):
+        self.s = s
+
+    def walkabout(self, visitor):
+        return visitor.visit_oXif(self)
+
+
+class LiuD_oXq:
+
+    def walkabout(self, visitor):
+        return visitor.visit_oXq(self)
+
+
+class LiuD_oX:
+
+    def walkabout(self, visitor):
+        return visitor.visit_oX(self)
+
+
 class LiuD_protoGroup:
     def __init__(self, n, vlst):
         self.n = n
@@ -326,6 +432,20 @@ class LiuD_sample_visitor_00:
     def visit_stmt_tax(self, node): pass
     def visit_args(self, node): pass
     def visit_arg(self, node): pass
+    def visit_output_rules(self, node): pass
+    def visit_orule(self, node): pass
+    def visit_oJiad(self, node): pass
+    def visit_oString(self, node): pass
+    def visit_ooptgroup(self, node): pass
+    def visit_oitemd(self, node): pass
+    def visit_oident(self, node): pass
+    def visit_onewline(self, node): pass
+    def visit_olnk(self, node): pass
+    def visit_oXlst(self, node): pass
+    def visit_oXchoice(self, node): pass
+    def visit_oXif(self, node): pass
+    def visit_oXq(self, node): pass
+    def visit_oX(self, node): pass
     def visit_protoGroup(self, node): pass
     def visit_Module(self, node): pass
 
@@ -417,6 +537,41 @@ class LiuD_sample_visitor_01:
         for v in node.vlst:
             v.walkabout(self)
     def visit_arg(self, node):
+        pass
+    def visit_output_rules(self, node):
+        for v in node.vlst:
+            v.walkabout(self)
+    def visit_orule(self, node):
+        for v in node.vlst:
+            v.walkabout(self)
+    def visit_oJiad(self, node):
+        node.v1.walkabout(self)
+        if node.vq is not None:
+            node.vq.walkabout(self)
+        node.v2.walkabout(self)
+    def visit_oString(self, node):
+        pass
+    def visit_ooptgroup(self, node):
+        for v in node.vlst:
+            v.walkabout(self)
+    def visit_oitemd(self, node):
+        for v in node.vlst:
+            v.walkabout(self)
+    def visit_oident(self, node):
+        pass
+    def visit_onewline(self, node):
+        pass
+    def visit_olnk(self, node):
+        pass
+    def visit_oXlst(self, node):
+        pass
+    def visit_oXchoice(self, node):
+        pass
+    def visit_oXif(self, node):
+        pass
+    def visit_oXq(self, node):
+        pass
+    def visit_oX(self, node):
         pass
     def visit_protoGroup(self, node):
         for v in node.vlst:
@@ -599,6 +754,60 @@ class LiuD_out_visitor_01:
         if node.sq is not None:
             self.outp.lnk()
             self.outp.puts(node.sq)
+    def visit_output_rules(self, node):
+        self.outp.puts('OutPut')
+        self.outp.puts('Rules')
+        self.outp.puts('{')
+        self.outp.newline()
+        for tem1 in node.vlst:
+            tem1.walkabout(self)
+        self.outp.puts('}')
+    def visit_orule(self, node):
+        self.outp.puts(node.s)
+        self.outp.puts(':')
+        for tem1 in node.vlst:
+            tem1.walkabout(self)
+        self.outp.newline()
+    def visit_oJiad(self, node):
+        node.v1.walkabout(self)
+        if node.vq is not None:
+            node.vq.walkabout(self)
+        self.outp.puts('^*')
+        node.v2.walkabout(self)
+    def visit_oString(self, node):
+        self.outp.puts(node.s)
+    def visit_ooptgroup(self, node):
+        self.outp.puts('[')
+        for tem1 in node.vlst:
+            tem1.walkabout(self)
+        self.outp.puts(']')
+    def visit_oitemd(self, node):
+        self.outp.puts('(')
+        for tem1 in node.vlst:
+            tem1.walkabout(self)
+        self.outp.puts(')*')
+    def visit_oident(self, node):
+        self.outp.puts(node.s)
+    def visit_onewline(self, node):
+        self.outp.puts('NL')
+    def visit_olnk(self, node):
+        self.outp.puts('-')
+    def visit_oXlst(self, node):
+        self.outp.puts('x*')
+    def visit_oXchoice(self, node):
+        self.outp.puts('x?(')
+        self.outp.puts(node.s1)
+        self.outp.puts(',')
+        self.outp.puts(node.s2)
+        self.outp.puts(')')
+    def visit_oXif(self, node):
+        self.outp.puts('x?(')
+        self.outp.puts(node.s)
+        self.outp.puts(')')
+    def visit_oXq(self, node):
+        self.outp.puts('x?')
+    def visit_oX(self, node):
+        self.outp.puts('x')
     def visit_protoGroup(self, node):
         self.outp.puts(node.n)
         self.outp.puts('{')
@@ -622,15 +831,15 @@ class Parser(Parser00):
             IgnoreCls(' \t', ['\\/\\/.*', '/\\*(.|\\n)*?\\*/']),
             IgnoreCls(' \t\n', ['\\/\\/.*', '/\\*(.|\\n)*?\\*/']),
         ]
-        self.lex_NEWLINE = HowRe('\\n+')
         self.lex_NAME = HowRe('[A-Za-z_][A-Za-z0-9_]*')
+        self.lex_NEWLINE = HowRe('\\n+')
         self.lex_STRING = HowRe("'.*?'")
-    
-    def handle_NEWLINE(self):
-        return self.handle_Lex(self.lex_NEWLINE)
     
     def handle_NAME(self, s = None):
         return self.handle_Lex(self.lex_NAME, s)
+    
+    def handle_NEWLINE(self):
+        return self.handle_Lex(self.lex_NEWLINE)
     
     def handle_STRING(self):
         s = self.handle_Lex(self.lex_STRING)
@@ -1214,6 +1423,9 @@ class Parser(Parser00):
         v = self.handle_name_prefix()
         if v is not None:
             return v
+        v = self.handle_output_rules()
+        if v is not None:
+            return v
         v = self.handle_stmt_inline()
         if v is not None:
             return v
@@ -1378,6 +1590,274 @@ class Parser(Parser00):
             sq = self.handle_OpChar('*')
         return LiuD_arg(s, sq)
 
+    def handle_output_rules(self):
+        sav0 = self.getpos()
+        if self.handle_NAME('Output') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        if self.handle_NAME('Rules') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        if self.handle_OpChar('{') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        self.handle_NEWLINE()
+        self.Skip(0)
+        vlst = []
+        sav1 = self.getpos()
+        while True:
+            v3 = self.handle_orule()
+            if v3 is None:
+                break
+            vlst.append(v3)
+            sav1 = self.getpos()
+            self.Skip(0)
+        self.setpos(sav1)
+        self.Skip(0)
+        if self.handle_OpChar('}') is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_output_rules(vlst)
+
+    def handle_orule(self):
+        sav0 = self.getpos()
+        s = self.handle_NAME()
+        if s is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        if self.handle_OpChar(':') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        vlst = []
+        sav1 = self.getpos()
+        while True:
+            v3 = self.hdl_oitem()
+            if v3 is None:
+                break
+            vlst.append(v3)
+            sav1 = self.getpos()
+            self.Skip(0)
+        self.setpos(sav1)
+        self.Skip(0)
+        if self.handle_NEWLINE() is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_orule(s, vlst)
+
+    def hdl_oitem(self):
+        v = self.handle_oJiad()
+        if v is not None:
+            return v
+        v = self.handle_oString()
+        if v is not None:
+            return v
+        v = self.handle_ooptgroup()
+        if v is not None:
+            return v
+        v = self.handle_oitemd()
+        if v is not None:
+            return v
+        v = self.handle_oident()
+        if v is not None:
+            return v
+        v = self.handle_onewline()
+        if v is not None:
+            return v
+        v = self.handle_olnk()
+        if v is not None:
+            return v
+        v = self.handle_oXlst()
+        if v is not None:
+            return v
+        v = self.handle_oXchoice()
+        if v is not None:
+            return v
+        v = self.handle_oXif()
+        if v is not None:
+            return v
+        v = self.handle_oXq()
+        if v is not None:
+            return v
+        return self.handle_oX()
+
+    def handle_oJiad(self):
+        sav0 = self.getpos()
+        v1 = self.handle_oX()
+        if v1 is None:
+            self.setpos(sav0)
+            return None
+        sav1 = self.getpos()
+        self.Skip(0)
+        vq = self.handle_olnk()
+        if vq is None:
+            self.setpos(sav1)
+        self.Skip(0)
+        if self.handle_OpChar('^*') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        v2 = self.handle_oString()
+        if v2 is None:
+            v2 = self.handle_oX()
+        if v2 is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_oJiad(v1, vq, v2)
+
+    def handle_oString(self):
+        sav0 = self.getpos()
+        s = self.handle_STRING()
+        if s is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_oString(s)
+
+    def handle_ooptgroup(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('[') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        vlst = []
+        sav1 = self.getpos()
+        while True:
+            v3 = self.hdl_oitem()
+            if v3 is None:
+                break
+            vlst.append(v3)
+            sav1 = self.getpos()
+            self.Skip(0)
+        if not vlst:
+            self.setpos(sav0)
+            return None
+        self.setpos(sav1)
+        self.Skip(0)
+        if self.handle_OpChar(']') is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_ooptgroup(vlst)
+
+    def handle_oitemd(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('(') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        vlst = []
+        sav1 = self.getpos()
+        while True:
+            v3 = self.hdl_oitem()
+            if v3 is None:
+                break
+            vlst.append(v3)
+            sav1 = self.getpos()
+            self.Skip(0)
+        if not vlst:
+            self.setpos(sav0)
+            return None
+        self.setpos(sav1)
+        self.Skip(0)
+        if self.handle_OpChar(')*') is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_oitemd(vlst)
+
+    def handle_oident(self):
+        sav0 = self.getpos()
+        s = self.handle_OpChar('+ident')
+        if s is None:
+            s = self.handle_OpChar('-ident')
+        if s is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_oident(s)
+
+    def handle_onewline(self):
+        sav0 = self.getpos()
+        self.Skip(0)
+        if self.handle_NAME('NL') is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_onewline()
+
+    def handle_olnk(self):
+        sav0 = self.getpos()
+        self.Skip(0)
+        if self.handle_OpChar('-') is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_olnk()
+
+    def handle_oXlst(self):
+        sav0 = self.getpos()
+        self.Skip(0)
+        if self.handle_OpChar('x*') is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_oXlst()
+
+    def handle_oXchoice(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('x?(') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        s1 = self.handle_STRING()
+        if s1 is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        if self.handle_OpChar(',') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        s2 = self.handle_STRING()
+        if s2 is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        if self.handle_OpChar(')') is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_oXchoice(s1, s2)
+
+    def handle_oXif(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('x?(') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        s = self.handle_STRING()
+        if s is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        if self.handle_OpChar(')') is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_oXif(s)
+
+    def handle_oXq(self):
+        sav0 = self.getpos()
+        self.Skip(0)
+        if self.handle_OpChar('x?') is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_oXq()
+
+    def handle_oX(self):
+        sav0 = self.getpos()
+        self.Skip(0)
+        if self.handle_NAME('x') is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_oX()
+
     def handle_protoGroup(self):
         sav0 = self.getpos()
         n = self.handle_NAME()
@@ -1490,6 +1970,7 @@ stmt :: stmtone NEWLINE$
         | ( set_linecomment : '.set_linecomment' STRING )
         | ( set_blockcomment : '.set_blockcomment' STRING STRING )
         | ( name_prefix : '.name_prefix' NAME )
+        | output_rules
         | stmt_inline
         | stmt_tax
         | protoGroup
@@ -1499,10 +1980,78 @@ stmt_tax(s, vq?, v) : NAME ['(' args ')'] ':' taxvalue
     args(vlst*) : arg ^+ ','
         arg(s, sq?) : NAME - ('?' | '*')$?
 
+output_rules : 'Output' 'Rules' '{' NEWLINE$? orule* '}'
+
+    orule(s, vlst*) : NAME ':' oitem* NEWLINE$
+
+    oitem :: ( oJiad(v1,vq?,v2) : oX olnk? '^*' (oString | oX) )
+        | ( oString : STRING )
+        | ( ooptgroup(vlst*) : '[' oitem+ ']' )
+        | ( oitemd(vlst*) : '(' oitem+ ')*' )
+        | ( oident : ('+ident' | '-ident')$ )
+        | ( onewline : 'NL' )
+        | ( olnk : '-' )
+        | ( oXlst : 'x*' )
+        | ( oXchoice : 'x?(' STRING ',' STRING ')' )
+        | ( oXif : 'x?(' STRING ')' )
+        | ( oXq : 'x?' )
+        | ( oX : 'x' )
+
 .syntax crlf
 protoGroup : NAME '{' stmt* '}'
 Module(vlst*) : stmt* ENDMARKER$
 
+Output Rules {
+    MoreDef : '+' - x*
+    OtherSyntax : '$NewSyntax'
+    protoGroup : x '{' NL (x NL)* '}'
+    opt2 : x '^-' '(' x* ')'
+    choices : x ^* '\n    |'
+    stringchoice : '(' x ^* '|' ')'
+    inline : '(' x ')'
+    serie : x*
+    bracegroup : '(' x* ')'
+    bracechoice : '(' x ^* '|' ')'
+    BoolChoice : 'Bool(' x ',' x ')'
+    BoolIf : 'Bool(' x ')'
+    ident : x
+    basestrn : x - '$'
+    LitName : x
+    LitString : x
+    ifnext : '-ifnext(' x ^* '|' ')'
+    ifnotnext : '-ifnotnext(' x ^* '|' ')'
+    itemq : x - '?'
+    itemd : x - '*'
+    itemp : x - '+'
+    jiad : x x? '^*' x? x
+    jiap : x x? '^+' x? x
+    optgroup : '[' x* ']'
+    syntaxdef : '-(' - x - ')'
+    noskip : '-'
+    dot_syntax : '.syntax' x
+    set_linecomment : '.set_linecomment' x
+    set_blockcomment : '.set_blockcomment' x x
+    name_prefix : '.name_prefix' x
+    stmt_inline : x ['(' x ')'] '::' x
+    stmt_tax : x ['(' x ')'] ':' x
+    args : x ^* ','
+    arg : x [- x]
+    Module : (x NL)*
+    output_rules : 'OutPut' 'Rules' '{' NL x* '}'
+    orule : x ':' x* NL
+    oJiad : x x? '^*' x
+    oString : x
+    ooptgroup : '[' x* ']'
+    oitemd : '(' x* ')*'
+    oident : x
+    onewline : 'NL'
+    olnk : '-'
+    oXlst : 'x*'
+    oXchoice : 'x?(' x ',' x ')'
+    oXif : 'x?(' x ')'
+    oXq : 'x?'
+    oX : 'x'
+}
 '''
 
 if __name__ == '__main__':

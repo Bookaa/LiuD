@@ -167,7 +167,13 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         self.flgcomment = False
 
     def visit_itemq(self, node):
-        outp = OutP(); outp.down(); outp.down()
+        if isinstance(node.v, LiuD_basestrn):
+            v2 = node.v.v
+            if isinstance(v2, LiuD_LitName):
+                self.Skipcmt(2)
+                OutP(2).prtln('%s' % self.handle_LitName(v2))
+                return
+        outp = OutP(2)
         savflg = self.flgcomment
         if self.flgcomment:
             savname = 'sav%d' % self.savno; self.savno += 1
@@ -197,8 +203,7 @@ class Visit_Gen02(LiuD_sample_visitor_01):
                 vname = self.arglst[self.argno][0]; self.argno += 1
                 outp.prtln('%s = self.%s' % (vname, Word_or_Symbol(v2.s)))
             elif isinstance(v2, LiuD_LitName):
-                outp.prtln('%s' % self.handle_LitName(v2))
-                return
+                assert False
             else:
                 assert False
             if savflg:
@@ -314,7 +319,7 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         outp.prtln('    self.setpos(%s)' % savname)
 
     def visit_LitString(self, node):
-        outp = OutP(); outp.down(); outp.down()
+        outp = OutP(2)
         self.skipcomment()
 
         outp.prtln('if self.%s is None:' % Word_or_Symbol(node.s))
@@ -657,17 +662,14 @@ class Parser(Parser00):
                 outp.prtln('    IgnoreCls(%s, %s),' % (s1, s2))
             outp.prtln(']')
 
-
-        for (name,b) in base_def.items():
-            if not base_def_used[name]:
-                continue
-            _, lexdef = b
+        lst3 = [name for name in base_def if base_def_used[name]]
+        lst3.sort()
+        for name in lst3:
+            _, lexdef = base_def[name]
             outp.prtln('self.lex_%s = HowRe(%s)' % (name, PythonString(lexdef)))
         outp.up()
-        for (name,b) in base_def.items():
-            if not base_def_used[name]:
-                continue
-            typ, lexdef = b
+        for name in lst3:
+            typ, lexdef = base_def[name]
             outp.prtln('')
             if typ == 'Name':
                 outp.prtln('def handle_%s(self, s = None):' % name)
@@ -689,7 +691,7 @@ class Parser(Parser00):
         (node, arglst, ignoresyntax, linecmt, blockcmt) = (nodeinfo.node, nodeinfo.arglst, nodeinfo.ign_syntax, nodeinfo.linecmt, nodeinfo.blockcmt)
         cmtsts = CommentsStatus(lst_skips, ignoresyntax, linecmt, blockcmt)
         print
-        if node.s == 'stmt':
+        if node.s == 'output_rules':
             pass
 
         if isinstance(node, LiuD_stmt_inline):
@@ -1247,8 +1249,14 @@ def GenPythonSrc(SyntaxIn):
         print '    def visit_%s(self, node): pass' % nodeinfo.node.s
     print
     gen_sample_01(grmlst)
-    gen_Out_01(SyntaxIn.Out_self, grmlst)
-
+    if True:
+        output_rules = None
+        for m in mod.vlst:
+            if isinstance(m, LiuD_output_rules):
+                output_rules = m
+                break
+        if output_rules:
+            gen_Out_02(output_rules, grmlst)
 
     print
     if False:
@@ -1316,10 +1324,8 @@ def GetOutNode(mod, name):
             return v
     assert False, 'not find %s' % name 
 
-def gen_Out_01(outdef, grmlst):
-    mod2 = Test_Parse_Out(outdef)
-    if mod2 is None:
-        return
+def gen_Out_02(output_rules, grmlst):
+    mod2 = output_rules
 
     outp = OutP()
     outp.prtln('')
@@ -1332,31 +1338,28 @@ def gen_Out_01(outdef, grmlst):
         outp.prtln('def visit_%s(self, node):' % node.s)
         name = node.s
         outnode = GetOutNode(mod2, name)
-        the = Out2_visitor(arglst)
+        the = Out3_visitor(arglst)
         outnode.walkabout(the)
         if not the.outp.fDone:
             outp.prtln('    pass')
-
         continue
 
 
-import Ast_Out
-class Out2_visitor:
+class Out3_visitor:
     def __init__(self, arglst):
         self.arglst = arglst
         self.argno = 0
-        self.outp = OutP()
-        self.outp.down(); self.outp.down()
+        self.outp = OutP(2)
         self.temno = 1
 
-    def visit_stmtone(self, node):
+    def visit_orule(self, node):
         for v in node.vlst:
             v.walkabout(self)
-    def visit_Jiad(self, node):
+    def visit_oJiad(self, node):
         arg, argtyp, argtyp2 = self.arglst[self.argno]; self.argno += 1
         tem1 = 'tem%d' % self.temno; self.temno += 1
         tem2 = 'tem%d' % self.temno; self.temno += 1
-        if isinstance(node.v2, Ast_Out.Out_X):
+        if isinstance(node.v2, LiuD_oX):
             argjia, jiatyp, jiatyp2 = self.arglst[self.argno]; self.argno += 1
             self.outp.prtln('fn%s = iter(node.%s)' % (tem1, arg))
             self.outp.prtln('for %s in node.%s:' % (tem2, argjia))
@@ -1387,7 +1390,7 @@ class Out2_visitor:
         #    self.outp.prtln('    self.outp.puts(%s)' % tem2)
         #else:
         #    self.outp.prtln('    %s.walkabout(self)' % tem2)
-    def visit_String(self, node):
+    def visit_oString(self, node):
         if node.s == 'othersyntax':
             s33 = '''
         if node.s1 == 'Python':
@@ -1402,7 +1405,7 @@ class Out2_visitor:
             self.outp.prtln(s33)
             return
         self.outp.prtln('self.outp.puts(%s)' % To2PythonString(node.s))
-    def visit_optgroup(self, node):
+    def visit_ooptgroup(self, node):
         arg = self.arglst[self.argno][0]
         self.outp.prtln('if node.%s is not None:' % arg)
         self.outp.down()
@@ -1413,13 +1416,13 @@ class Out2_visitor:
             v.walkabout(self)
         self.outp.up()
         self.inopt = False
-    def visit_itemd(self, node):
+    def visit_oitemd(self, node):
         arg, typ, typ2 = self.arglst[self.argno]; self.argno += 1
         tem2 = 'tem%d' % self.temno; self.temno += 1
         self.outp.prtln('for %s in node.%s:' % (tem2, arg))
         self.outp.down()
         for v in node.vlst:
-            if isinstance(v, Ast_Out.Out_X):
+            if isinstance(v, LiuD_oX):
                 s5 = SmartType(typ, typ2).howwalkmember(tem2)
                 self.outp.prtln(s5)
                 #if typ2 == 'slst': #arg.startswith('s'):
@@ -1429,16 +1432,16 @@ class Out2_visitor:
                 continue
             v.walkabout(self)
         self.outp.up()
-    def visit_ident(self, node):
+    def visit_oident(self, node):
         if node.s == '+ident':
             self.outp.prtln('self.outp.identin()')
         else:
             self.outp.prtln('self.outp.identout()')
-    def visit_newline(self, node):
+    def visit_onewline(self, node):
         self.outp.prtln('self.outp.newline()')
-    def visit_lnk(self, node):
+    def visit_olnk(self, node):
         self.outp.prtln('self.outp.lnk()')
-    def visit_Xlst(self, node):
+    def visit_oXlst(self, node):
         arg, typ, typ2 = self.arglst[self.argno]; self.argno += 1
         tem2 = 'tem%d' % self.temno; self.temno += 1
         self.outp.prtln('for %s in node.%s:' % (tem2, arg))
@@ -1448,17 +1451,17 @@ class Out2_visitor:
         #    self.outp.prtln('self.outp.puts(%s)' % tem2)
         #else:
         #    self.outp.prtln('    %s.walkabout(self)' % tem2)
-    def visit_Xchoice(self, node):
+    def visit_oXchoice(self, node):
         arg, typ, typ2 = self.arglst[self.argno]; self.argno += 1
         self.outp.prtln('if node.%s:' % arg)
         self.outp.prtln('self.outp.puts(%s)' % To2PythonString(node.s1), 1)
         self.outp.prtln('else:')
         self.outp.prtln('self.outp.puts(%s)' % To2PythonString(node.s2), 1)
-    def visit_Xif(self, node):
+    def visit_oXif(self, node):
         arg, typ, typ2 = self.arglst[self.argno]; self.argno += 1
         self.outp.prtln('if node.%s:' % arg)
         self.outp.prtln('self.outp.puts(%s)' % To2PythonString(node.s), 1)
-    def visit_Xq(self, node):
+    def visit_oXq(self, node):
         arg,typ,typ2 = self.arglst[self.argno]; self.argno += 1
         self.outp.prtln('if node.%s is not None:' % arg)
         self.outp.down()
@@ -1470,7 +1473,7 @@ class Out2_visitor:
         #else:
         #    self.outp.prtln('node.%s!.walkabout(self)' % arg)
         self.outp.up()
-    def visit_X(self, node):
+    def visit_oX(self, node):
         if self.argno >= len(self.arglst):
             pass
         arg,typ,typ2 = self.arglst[self.argno]; self.argno += 1
@@ -1489,6 +1492,3 @@ class Out2_visitor:
         #if not self.inopt and arg.endswith('q'):
         #    self.outp.up()
 
-    def visit_Module(self, node):
-        for v in node.vlst:
-            v.walkabout(self)
