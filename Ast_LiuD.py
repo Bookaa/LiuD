@@ -231,6 +231,14 @@ class LiuD_set_blockcomment:
         return visitor.visit_set_blockcomment(self)
 
 
+class LiuD_name_prefix:
+    def __init__(self, n):
+        self.n = n
+
+    def walkabout(self, visitor):
+        return visitor.visit_name_prefix(self)
+
+
 class LiuD_stmt_inline:
     def __init__(self, s, vargq, v):
         self.s = s
@@ -313,6 +321,7 @@ class LiuD_sample_visitor_00:
     def visit_dot_syntax(self, node): pass
     def visit_set_linecomment(self, node): pass
     def visit_set_blockcomment(self, node): pass
+    def visit_name_prefix(self, node): pass
     def visit_stmt_inline(self, node): pass
     def visit_stmt_tax(self, node): pass
     def visit_args(self, node): pass
@@ -393,6 +402,8 @@ class LiuD_sample_visitor_01:
     def visit_set_linecomment(self, node):
         pass
     def visit_set_blockcomment(self, node):
+        pass
+    def visit_name_prefix(self, node):
         pass
     def visit_stmt_inline(self, node):
         if node.vargq is not None:
@@ -557,6 +568,9 @@ class LiuD_out_visitor_01:
         self.outp.puts('.set_blockcomment')
         self.outp.puts(node.s1)
         self.outp.puts(node.s2)
+    def visit_name_prefix(self, node):
+        self.outp.puts('.name_prefix')
+        self.outp.puts(node.n)
     def visit_stmt_inline(self, node):
         self.outp.puts(node.s)
         if node.vargq is not None:
@@ -1197,6 +1211,9 @@ class Parser(Parser00):
         v = self.handle_set_blockcomment()
         if v is not None:
             return v
+        v = self.handle_name_prefix()
+        if v is not None:
+            return v
         v = self.handle_stmt_inline()
         if v is not None:
             return v
@@ -1247,6 +1264,18 @@ class Parser(Parser00):
             self.setpos(sav0)
             return None
         return LiuD_set_blockcomment(s1, s2)
+
+    def handle_name_prefix(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('.name_prefix') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        n = self.handle_NAME()
+        if n is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_name_prefix(n)
 
     def handle_stmt_inline(self):
         sav0 = self.getpos()
@@ -1415,6 +1444,7 @@ def Test_Out_LiuD(mod):
     outp.newline()
 
 s_sample_LiuD = r'''
+.name_prefix LiuD
 .set_linecomment '\/\/'
 // this is comment
 .set_blockcomment '/\*' '\*/'
@@ -1459,6 +1489,7 @@ stmt :: stmtone NEWLINE$
     stmtone :: ( dot_syntax : '.syntax' (NAME | '-'$) )
         | ( set_linecomment : '.set_linecomment' STRING )
         | ( set_blockcomment : '.set_blockcomment' STRING STRING )
+        | ( name_prefix : '.name_prefix' NAME )
         | stmt_inline
         | stmt_tax
         | protoGroup

@@ -13,6 +13,7 @@ def tostr_Out_STRING(s):
         return None
     if (s[0],s[-1]) == ("'","'"):
         s = s[1:-1]
+    s = s.replace(r'\n','\n')
     return s
 def tostr_LiuD_STRING(s):
     if s is None:

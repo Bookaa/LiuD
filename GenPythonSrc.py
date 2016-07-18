@@ -43,6 +43,8 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         assert False
     def visit_set_blockcomment(self, node):
         assert False
+    def visit_name_prefix(self, node):
+        assert False
     def visit_stmt_tax(self, node):
         node.v.walkabout(self)
     def visit_jiad(self, node):
@@ -382,7 +384,7 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         outp.prtln('%s = self.handle_OpChar(%s) is not None' % (vname, PythonString(node.s)))
 
     def visit_basestrn(self, node):
-        outp = OutP(); outp.down(); outp.down()
+        outp = OutP(2)
         self.skipcomment()
 
         if isinstance(node.v, LiuD_LitName):
@@ -657,10 +659,14 @@ class Parser(Parser00):
 
 
         for (name,b) in base_def.items():
+            if not base_def_used[name]:
+                continue
             _, lexdef = b
             outp.prtln('self.lex_%s = HowRe(%s)' % (name, PythonString(lexdef)))
         outp.up()
         for (name,b) in base_def.items():
+            if not base_def_used[name]:
+                continue
             typ, lexdef = b
             outp.prtln('')
             if typ == 'Name':
@@ -683,7 +689,7 @@ class Parser(Parser00):
         (node, arglst, ignoresyntax, linecmt, blockcmt) = (nodeinfo.node, nodeinfo.arglst, nodeinfo.ign_syntax, nodeinfo.linecmt, nodeinfo.blockcmt)
         cmtsts = CommentsStatus(lst_skips, ignoresyntax, linecmt, blockcmt)
         print
-        if node.s == 'syntaxdef':
+        if node.s == 'stmt':
             pass
 
         if isinstance(node, LiuD_stmt_inline):
@@ -1190,16 +1196,26 @@ def gen_sample_01(grmlst):
         outp.up()
 
 def GenPythonSrc(SyntaxIn):
-    global base_def, SynName, s_sample
+    global base_def, base_def_used, SynName, s_sample
     s_sample = SyntaxIn.s_sample
-    SynName = SyntaxIn.SynName
-    base_def = SyntaxIn.base_def
+    #SynName = SyntaxIn.SynName
+    base_def = { 'NEWLINE'       : ('',       '\\n+'),
+                 'NAME'          : ('Name',   '[A-Za-z_][A-Za-z0-9_]*'),
+                 'STRING'        : ('String',  "'.*?'"),
+                 #'STRING'  :    ('String',  r"'(.|\n)*?'")
+                 'CHAR'          : ('String', r'.'),
+                 'NUMBER'        : ('Int',    r'\d+'),
+                 'NUMBER_INT'    : ('Int',    r'0|[1-9]\d*'),
+                 'NUMBER_DOUBLE' : ('Double', r'\d+\.\d+') }
+
+    base_def_used = {name : False for name in base_def}
 
     parser = Parser(SyntaxIn.s_tree)
 
     import libforgen
-    libforgen.SynName = SynName
+    #libforgen.SynName = SynName
     libforgen.base_def = base_def
+    libforgen.base_def_used = base_def_used
     libforgen.Dest = 'py'
 
     syntax_lst = { # this is default comment syntax
@@ -1220,6 +1236,8 @@ def GenPythonSrc(SyntaxIn):
     print 'from lib import *'
 
     grmlst = GenPython01(mod)
+
+    SynName = libforgen.SynName
 
     for nodeinfo in grmlst.iter_syntax():
         report1(nodeinfo)

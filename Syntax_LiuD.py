@@ -1,13 +1,7 @@
 # LiuTaoTao github.com/Bookaa/LiuD
 
-SynName = 'LiuD'
-
-base_def = { 'NEWLINE' :    ('',   '\\n+'),
-             'NAME'    :    ('Name',  '[A-Za-z_][A-Za-z0-9_]*'),
-             'STRING'  :    ('String',  "'.*?'")
-             }
-
 s_tree = r'''
+.name_prefix LiuD
 .set_linecomment '\/\/'
 // this is comment
 .set_blockcomment '/\*' '\*/'
@@ -52,6 +46,7 @@ stmt :: stmtone NEWLINE$
     stmtone :: ( dot_syntax : '.syntax' (NAME | '-'$) )
         | ( set_linecomment : '.set_linecomment' STRING )
         | ( set_blockcomment : '.set_blockcomment' STRING STRING )
+        | ( name_prefix : '.name_prefix' NAME )
         | stmt_inline
         | stmt_tax
         | protoGroup
@@ -67,7 +62,7 @@ Module(vlst*) : stmt* ENDMARKER$
 
 '''
 
-Out_self = '''
+Out_self = r'''
 MoreDef : '+' - x*
 OtherSyntax : '$NewSyntax'
 protoGroup : x '{' NL (x NL)* '}'
@@ -97,6 +92,7 @@ noskip : '-'
 dot_syntax : '.syntax' x
 set_linecomment : '.set_linecomment' x
 set_blockcomment : '.set_blockcomment' x x
+name_prefix : '.name_prefix' x
 stmt_inline : x ['(' x ')'] '::' x
 stmt_tax : x ['(' x ')'] ':' x
 args : x ^* ','

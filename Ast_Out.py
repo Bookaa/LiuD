@@ -220,12 +220,12 @@ class Parser(Parser00):
         Parser00.__init__(self, srctxt)
 
         self.skips = [
-            IgnoreCls(' \t', ['/\\*(.|\\n)*?\\*/', '\\/\\/.*']),
-            IgnoreCls(' \t\n', ['/\\*(.|\\n)*?\\*/', '\\/\\/.*']),
+            IgnoreCls(' \t', ['\\/\\/.*']),
+            IgnoreCls(' \t\n', ['\\/\\/.*']),
         ]
         self.lex_NEWLINE = HowRe('\\n+')
         self.lex_NAME = HowRe('[A-Za-z_][A-Za-z0-9_]*')
-        self.lex_STRING = HowRe("'(.|\\n)*?'")
+        self.lex_STRING = HowRe("'.*?'")
     
     def handle_NEWLINE(self):
         return self.handle_Lex(self.lex_NEWLINE)

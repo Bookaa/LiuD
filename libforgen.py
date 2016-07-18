@@ -2,6 +2,8 @@
 
 from Ast_LiuD import *
 
+SynName = ''
+
 class OutP:
     def __init__(self, identn=0):
         self.s = ""
@@ -252,6 +254,7 @@ class Visit_00(LiuD_sample_visitor_01):
         return self.howword(node.n)
     def howword(self, s):
         if s in base_def:
+            base_def_used[s] = True
             typdefs, _ = base_def[s]
             if typdefs in ('String','String2'):
                 return [('s','.s')]
@@ -319,7 +322,7 @@ class Visit_00(LiuD_sample_visitor_01):
         return [('b','.b')]
     def visit_basestrn(self, node):
         if isinstance(node.v, LiuD_LitName):
-            pass # do nothing
+            base_def_used[node.v.n] = True
         else:
             return [('s','.s')]
     def visit_inline(self, node):
@@ -364,6 +367,9 @@ class Visit_Gen01(LiuD_sample_visitor_01):
         self.linecomment = node.s
     def visit_set_blockcomment(self, node):
         self.blockcomment = (node.s1, node.s2)
+    def visit_name_prefix(self, node):
+        global SynName
+        SynName = node.n
     def visit_stmt_tax(self, node):
         self.lst0.append(node.s)
         self.dic[node.s] = LiudNodeInfo(node, self.cur_syntax, self.cur_protocol, self.linecomment, self.blockcomment)

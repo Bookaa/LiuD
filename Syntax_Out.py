@@ -1,13 +1,7 @@
 # LiuTaoTao github.com/Bookaa/LiuD
 
-SynName = 'Out'
-
-base_def = { 'NEWLINE' :    ('',    '\\n+'),
-             'NAME'    :    ('Name',  '[A-Za-z_][A-Za-z0-9_]*'),
-             'STRING'  :    ('String',  r"'(.|\n)*?'")
-             }
-
-s_tree = '''
+s_tree = r'''
+.name_prefix Out
 .set_linecomment '\/\/'
 
 .syntax wspace

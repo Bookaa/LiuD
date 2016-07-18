@@ -1,16 +1,7 @@
 # LiuTaoTao github.com/Bookaa/LiuD
 
-SynName = 'Re'
-
-ignores = { }
-
-
-base_def = { 'NAME'   : ('Name',     '[A-Za-z_][A-Za-z0-9_]*'),
-             'NUMBER' : ('Int',         r'\d+'),
-             'CHAR'   : ('String',      r'.')
-             }
-
 s_tree = '''
+.name_prefix Re
 .syntax -
 
 Module: stmt ENDMARKER$
