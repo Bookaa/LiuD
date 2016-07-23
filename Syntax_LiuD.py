@@ -9,6 +9,15 @@ s_tree = r'''
 
 .syntax wspace
 
+// .string STRING1 strtype1 '\$liud\$((.|\n)*?)\$duil\$'
+// .string STRING2 strtype1 '\$liut\$((.|\n)*?)\$tuil\$'
+// .string STRING3 strtype3 $liud$'([^'\\]*(?:\\.[^'\\]*)*)'$duil$
+// .string STRING4 strtype4 $liud$'([^'\\]*(?:\\.[^'\\]*)*)'$duil$
+
+// STRING :: STRING1 | STRING2 | STRING3
+
+string_def : '.string' NAME NAME STRING
+
 iExpr {
 taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
     | ( choices(vlst*) : + taxone -(crlf) ^+ '|' )
@@ -48,6 +57,8 @@ stmt :: stmtone NEWLINE$
         | ( set_blockcomment : '.set_blockcomment' STRING STRING )
         | ( name_prefix : '.name_prefix' NAME )
         | output_rules
+        | string_def
+        | ( sample_text : 'Sample' 'Text' '=' STRING )
         | stmt_inline
         | stmt_tax
         | protoGroup
@@ -62,7 +73,7 @@ output_rules : 'Output' 'Rules' '{' NEWLINE$? orule* '}'
     orule(s, vlst*) : NAME ':' oitem* NEWLINE$
 
     oitem :: ( oJiad(v1,vq?,v2) : oX olnk? '^*' (oString | oX) )
-        | ( oString : STRING )
+        | ( oString : STRING4 )
         | ( ooptgroup(vlst*) : '[' oitem+ ']' )
         | ( oitemd(vlst*) : '(' oitem+ ')*' )
         | ( oident : ('+ident' | '-ident')$ )
@@ -109,6 +120,8 @@ Output Rules {
     set_linecomment : '.set_linecomment' x
     set_blockcomment : '.set_blockcomment' x x
     name_prefix : '.name_prefix' x
+    string_def : '.string' x x x
+    sample_text : 'Sample Text =' x
     stmt_inline : x ['(' x ')'] '::' x
     stmt_tax : x ['(' x ')'] ':' x
     args : x ^* ','
@@ -129,6 +142,16 @@ Output Rules {
     oXq : 'x?'
     oX : 'x'
 }
+
+
 '''
 
-s_sample = s_tree # describe myself
+s_tree = s_tree + '''
+
+Sample Text = $liut$
+%s
+$tuil$
+
+''' % s_tree
+
+# s_sample = s_tree # describe myself

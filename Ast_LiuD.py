@@ -2,6 +2,16 @@
 
 from lib import *
 
+class LiuD_string_def:
+    def __init__(self, n1, n2, s):
+        self.n1 = n1
+        self.n2 = n2
+        self.s = s
+
+    def walkabout(self, visitor):
+        return visitor.visit_string_def(self)
+
+
 class LiuD_opt2:
     def __init__(self, s, vlst):
         self.s = s
@@ -239,6 +249,14 @@ class LiuD_name_prefix:
         return visitor.visit_name_prefix(self)
 
 
+class LiuD_sample_text:
+    def __init__(self, s):
+        self.s = s
+
+    def walkabout(self, visitor):
+        return visitor.visit_sample_text(self)
+
+
 class LiuD_stmt_inline:
     def __init__(self, s, vargq, v):
         self.s = s
@@ -399,6 +417,7 @@ class LiuD_Module:
         return visitor.visit_Module(self)
 
 class LiuD_sample_visitor_00:
+    def visit_string_def(self, node): pass
     def visit_opt2(self, node): pass
     def visit_choices(self, node): pass
     def visit_MoreDef(self, node): pass
@@ -428,6 +447,7 @@ class LiuD_sample_visitor_00:
     def visit_set_linecomment(self, node): pass
     def visit_set_blockcomment(self, node): pass
     def visit_name_prefix(self, node): pass
+    def visit_sample_text(self, node): pass
     def visit_stmt_inline(self, node): pass
     def visit_stmt_tax(self, node): pass
     def visit_args(self, node): pass
@@ -450,6 +470,8 @@ class LiuD_sample_visitor_00:
     def visit_Module(self, node): pass
 
 class LiuD_sample_visitor_01:
+    def visit_string_def(self, node):
+        pass
     def visit_opt2(self, node):
         for v in node.vlst:
             v.walkabout(self)
@@ -525,6 +547,8 @@ class LiuD_sample_visitor_01:
         pass
     def visit_name_prefix(self, node):
         pass
+    def visit_sample_text(self, node):
+        pass
     def visit_stmt_inline(self, node):
         if node.vargq is not None:
             node.vargq.walkabout(self)
@@ -583,6 +607,11 @@ class LiuD_sample_visitor_01:
 class LiuD_out_visitor_01:
     def __init__(self, outp):
         self.outp = outp
+    def visit_string_def(self, node):
+        self.outp.puts('.string')
+        self.outp.puts(node.n1)
+        self.outp.puts(node.n2)
+        self.outp.puts(node.s)
     def visit_opt2(self, node):
         self.outp.puts(node.s)
         self.outp.puts('^-')
@@ -726,6 +755,9 @@ class LiuD_out_visitor_01:
     def visit_name_prefix(self, node):
         self.outp.puts('.name_prefix')
         self.outp.puts(node.n)
+    def visit_sample_text(self, node):
+        self.outp.puts('Sample Text =')
+        self.outp.puts(node.s)
     def visit_stmt_inline(self, node):
         self.outp.puts(node.s)
         if node.vargq is not None:
@@ -831,19 +863,28 @@ class Parser(Parser00):
             IgnoreCls(' \t', ['\\/\\/.*', '/\\*(.|\\n)*?\\*/']),
             IgnoreCls(' \t\n', ['\\/\\/.*', '/\\*(.|\\n)*?\\*/']),
         ]
-        self.lex_NAME = HowRe('[A-Za-z_][A-Za-z0-9_]*')
-        self.lex_NEWLINE = HowRe('\\n+')
-        self.lex_STRING = HowRe("'.*?'")
-    
-    def handle_NAME(self, s = None):
-        return self.handle_Lex(self.lex_NAME, s)
-    
-    def handle_NEWLINE(self):
-        return self.handle_Lex(self.lex_NEWLINE)
-    
-    def handle_STRING(self):
-        s = self.handle_Lex(self.lex_STRING)
-        return tostr_LiuD_STRING(s)
+
+    def handle_string_def(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('.string') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        n1 = self.handle_NAME()
+        if n1 is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        n2 = self.handle_NAME()
+        if n2 is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        s = self.handle_STRING()
+        if s is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_string_def(n1, n2, s)
 
     def hdl_taxvalue(self):
         v = self.handle_opt2()
@@ -1426,6 +1467,12 @@ class Parser(Parser00):
         v = self.handle_output_rules()
         if v is not None:
             return v
+        v = self.handle_string_def()
+        if v is not None:
+            return v
+        v = self.handle_sample_text()
+        if v is not None:
+            return v
         v = self.handle_stmt_inline()
         if v is not None:
             return v
@@ -1488,6 +1535,26 @@ class Parser(Parser00):
             self.setpos(sav0)
             return None
         return LiuD_name_prefix(n)
+
+    def handle_sample_text(self):
+        sav0 = self.getpos()
+        if self.handle_NAME('Sample') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        if self.handle_NAME('Text') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        if self.handle_OpChar('=') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        s = self.handle_STRING()
+        if s is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_sample_text(s)
 
     def handle_stmt_inline(self):
         sav0 = self.getpos()
@@ -1711,7 +1778,7 @@ class Parser(Parser00):
 
     def handle_oString(self):
         sav0 = self.getpos()
-        s = self.handle_STRING()
+        s = self.handle_STRING4()
         if s is None:
             self.setpos(sav0)
             return None
@@ -1924,6 +1991,7 @@ def Test_Out_LiuD(mod):
     outp.newline()
 
 s_sample_LiuD = r'''
+
 .name_prefix LiuD
 .set_linecomment '\/\/'
 // this is comment
@@ -1931,6 +1999,15 @@ s_sample_LiuD = r'''
 /* comment again */
 
 .syntax wspace
+
+// .string STRING1 strtype1 '\$liud\$((.|\n)*?)\$duil\$'
+// .string STRING2 strtype1 '\$liut\$((.|\n)*?)\$tuil\$'
+// .string STRING3 strtype3 $liud$'([^'\\]*(?:\\.[^'\\]*)*)'$duil$
+// .string STRING4 strtype4 $liud$'([^'\\]*(?:\\.[^'\\]*)*)'$duil$
+
+// STRING :: STRING1 | STRING2 | STRING3
+
+string_def : '.string' NAME NAME STRING
 
 iExpr {
 taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
@@ -1971,6 +2048,8 @@ stmt :: stmtone NEWLINE$
         | ( set_blockcomment : '.set_blockcomment' STRING STRING )
         | ( name_prefix : '.name_prefix' NAME )
         | output_rules
+        | string_def
+        | ( sample_text : 'Sample' 'Text' '=' STRING )
         | stmt_inline
         | stmt_tax
         | protoGroup
@@ -1985,7 +2064,7 @@ output_rules : 'Output' 'Rules' '{' NEWLINE$? orule* '}'
     orule(s, vlst*) : NAME ':' oitem* NEWLINE$
 
     oitem :: ( oJiad(v1,vq?,v2) : oX olnk? '^*' (oString | oX) )
-        | ( oString : STRING )
+        | ( oString : STRING4 )
         | ( ooptgroup(vlst*) : '[' oitem+ ']' )
         | ( oitemd(vlst*) : '(' oitem+ ')*' )
         | ( oident : ('+ident' | '-ident')$ )
@@ -2032,6 +2111,8 @@ Output Rules {
     set_linecomment : '.set_linecomment' x
     set_blockcomment : '.set_blockcomment' x x
     name_prefix : '.name_prefix' x
+    string_def : '.string' x x x
+    sample_text : 'Sample Text =' x
     stmt_inline : x ['(' x ')'] '::' x
     stmt_tax : x ['(' x ')'] ':' x
     args : x ^* ','
@@ -2052,6 +2133,9 @@ Output Rules {
     oXq : 'x?'
     oX : 'x'
 }
+
+
+
 '''
 
 if __name__ == '__main__':

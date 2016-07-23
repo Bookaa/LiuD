@@ -22,6 +22,26 @@ def tostr_LiuD_STRING(s):
         s = s[1:-1]
     s = s.replace(r'\n','\n')
     return s
+def Escape(s):
+    if not s:
+        return s
+    flg = False
+    s0 = ''
+    for c in s:
+        if not flg:
+            if c == '\\':
+                flg = True
+            else:
+                s0 += c
+            continue
+        if c == "'":
+            s0 += c
+        elif c == 'n':
+            s0 += '\n'
+        else:
+            assert False
+        flg = False
+    return s0
 def tostr_LangL_STRING1(s):
     if s is None:
         return None
@@ -61,7 +81,18 @@ class HowRe:
     def howmatch(self, textsrc, pos):
         m = self.compiled.match(textsrc, pos)
         if m:
-            return (m.group(), m.end())
+            content = m.group()
+            return (content, m.end())
+        return None
+    def howmatch_str(self, textsrc, pos):
+        m = self.compiled.match(textsrc, pos)
+        if m:
+            groups = m.groups()
+            if groups:
+                content = groups[0]
+            else:
+                content = m.group()
+            return (content, m.end())
         return None
 
 class IgnoreCls:
@@ -76,6 +107,28 @@ class Parser00:
         self.pos = [0, []]
         self.lastpos = 0
         self.skips = []
+        self.lex_STRING1 = HowRe(r'\$liud\$((.|\n)*?)\$duil\$')
+        self.lex_STRING2 = HowRe(r'\$liut\$((.|\n)*?)\$tuil\$')
+        self.lex_STRING3 = HowRe(r"'([^'\\]*(?:\\.[^'\\]*)*)'")
+        self.lex_STRING4 = HowRe(r"'([^'\\]*(?:\\.[^'\\]*)*)'")
+        self.lex_NAME = HowRe('[A-Za-z_][A-Za-z0-9_]*')
+        self.lex_NEWLINE = HowRe(r'\n+')
+
+    def handle_NAME(self, s = None):
+        return self.handle_Lex(self.lex_NAME, s)
+
+    def handle_NEWLINE(self):
+        return self.handle_Lex(self.lex_NEWLINE)
+
+    def handle_STRING(self):
+        s = self.handle_STRING1()
+        if s is not None:
+            return s
+        s = self.handle_STRING2()
+        if s is not None:
+            return s
+        return self.handle_STRING3()
+
     def getpos(self):
         return (self.pos[0], self.pos[1]+[])
     def setpos(self, sav):
@@ -111,6 +164,29 @@ class Parser00:
             if s is not None:
                 if value != s:
                     return None
+            self.pos[0] = m_end; self.updatelast()
+            return value
+        return None
+
+    def handle_STRING1(self):
+        return self.handle_string_Lex(self.lex_STRING1)
+
+    def handle_STRING2(self):
+        return self.handle_string_Lex(self.lex_STRING2)
+
+    def handle_STRING3(self):
+        return self.handle_string_Lex(self.lex_STRING3)
+
+    def handle_STRING4(self):
+        s = self.handle_string_Lex(self.lex_STRING4)
+        return Escape(s)
+
+    def handle_string_Lex(self, lex):
+        #b = match_compiled(lex, self.srctxt, self.pos[0])
+        #import pdb; pdb.set_trace()
+        b = lex.howmatch_str(self.srctxt, self.pos[0])
+        if b is not None:
+            (value, m_end) = b
             self.pos[0] = m_end; self.updatelast()
             return value
         return None

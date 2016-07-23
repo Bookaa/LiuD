@@ -7,7 +7,7 @@ def GenPython01(mod):
     visit = Visit_Gen01()
     mod.walkabout(visit)
     grmlst = visit.AllLst()
-    return grmlst
+    return grmlst, visit.sample_text
 
 class Visit_Gen02(LiuD_sample_visitor_01):
     def __init__(self, cur_syntax, arglst, grmlst):
@@ -45,6 +45,11 @@ class Visit_Gen02(LiuD_sample_visitor_01):
         assert False
     def visit_name_prefix(self, node):
         assert False
+    def visit_string_def(self, node):
+        assert False
+    def visit_sample_text(self, node):
+        assert False
+
     def visit_stmt_tax(self, node):
         node.v.walkabout(self)
     def visit_jiad(self, node):
@@ -662,10 +667,10 @@ class Parser(Parser00):
                 outp.prtln('    IgnoreCls(%s, %s),' % (s1, s2))
             outp.prtln(']')
 
-        lst3 = [name for name in base_def if base_def_used[name]]
+        lst3 = [name for name in base_def if base_def_used[name] > 0]
         lst3.sort()
         for name in lst3:
-            _, lexdef = base_def[name]
+            stype, lexdef = base_def[name]
             outp.prtln('self.lex_%s = HowRe(%s)' % (name, PythonString(lexdef)))
         outp.up()
         for name in lst3:
@@ -674,7 +679,6 @@ class Parser(Parser00):
             if typ == 'Name':
                 outp.prtln('def handle_%s(self, s = None):' % name)
                 outp.prtln('return self.handle_Lex(self.lex_%s, s)' % name, 1)
-
             elif typ == 'String':
                 outp.prtln('def handle_%s(self):' % name)
                 outp.prtln('    s = self.handle_Lex(self.lex_%s)' % name)
@@ -683,7 +687,22 @@ class Parser(Parser00):
                 outp.prtln('def handle_%s(self):' % name)
                 outp.prtln('    s = self.handle_Lex(self.lex_%s)' % name)
                 outp.prtln('    return None if s is None else int(s)')
+            elif typ == 'strtype1':
+                outp.prtln('def handle_%s(self):' % name)
+                outp.prtln('return self.handle_string_Lex(self.lex_%s)' % name, 1)
+            elif typ == 'strtype3':
+                outp.prtln('def handle_%s(self):' % name)
+                outp.prtln('return self.handle_string_Lex(self.lex_%s)' % name, 1)
+            elif typ == 'strtype4':
+                outp.prtln('def handle_%s(self):' % name)
+                outp.prtln('s = self.handle_string_Lex(self.lex_%s)' % name, 1)
+                outp.prtln('return Escape(s)', 1)
+            elif typ in ('type00', 'Double'):
+                outp.prtln('def handle_%s(self):' % name)
+                outp.prtln('return self.handle_Lex(self.lex_%s)' % name, 1)
             else:
+                print 'type is', typ
+                assert False
                 outp.prtln('def handle_%s(self):' % name)
                 outp.prtln('return self.handle_Lex(self.lex_%s)' % name, 1)
 
@@ -1198,33 +1217,14 @@ def gen_sample_01(grmlst):
         outp.up()
 
 def GenPythonSrc(SyntaxIn):
-    global base_def, base_def_used, SynName, s_sample
-    s_sample = SyntaxIn.s_sample
+    global base_def, base_def_used, SynName, s_sample, base_def2
+    #s_sample = SyntaxIn.s_sample
     #SynName = SyntaxIn.SynName
-    base_def = { 'NEWLINE'       : ('',       '\\n+'),
-                 'NAME'          : ('Name',   '[A-Za-z_][A-Za-z0-9_]*'),
-                 'STRING'        : ('String',  "'.*?'"),
-                 #'STRING'  :    ('String',  r"'(.|\n)*?'")
-                 'CHAR'          : ('String', r'.'),
-                 'NUMBER'        : ('Int',    r'\d+'),
-                 'NUMBER_INT'    : ('Int',    r'0|[1-9]\d*'),
-                 'NUMBER_DOUBLE' : ('Double', r'\d+\.\d+') }
 
-    base_def_used = {name : False for name in base_def}
+    # sSyntax = 'STRING :: STRING1 | STRING2 | STRING3\n' + SyntaxIn.s_tree
+    sSyntax = SyntaxIn.s_tree
 
-    parser = Parser(SyntaxIn.s_tree)
-
-    import libforgen
-    #libforgen.SynName = SynName
-    libforgen.base_def = base_def
-    libforgen.base_def_used = base_def_used
-    libforgen.Dest = 'py'
-
-    syntax_lst = { # this is default comment syntax
-        'crlf'   : ( ' \t\n', [  ] ),
-        'wspace' : ( ' \t',   [  ] ),
-        'no'     : ( '', [] )
-    }
+    parser = Parser(sSyntax)
 
     mod = parser.handle_Module()
     if mod is None:
@@ -1234,10 +1234,48 @@ def GenPythonSrc(SyntaxIn):
         print 'last line :', lastline
         return
 
+
+    base_def2 = ('STRING',)
+
+    base_def = { 'NEWLINE'       : ('type00',       '\\n+'),
+                 'NAME'          : ('Name',   '[A-Za-z_][A-Za-z0-9_]*'),
+                 'STRING1' : ('strtype1', r'\$liud\$((.|\n)*?)\$duil\$'),
+                 'STRING2' : ('strtype1', r'\$liut\$((.|\n)*?)\$tuil\$'),
+                 'STRING3' : ('strtype3', r"'([^'\\]*(?:\\.[^'\\]*)*)'"),
+                 'STRING4' : ('strtype4', r"'([^'\\]*(?:\\.[^'\\]*)*)'"),
+                 #'STRING'        : ('String',  r"'[^'\\]*(?:\\.[^'\\]*)*'"), # "'.*?'"
+                 #'STRINGR'       : ('String', r"'[^'\\]*(?:\\.[^'\\]*)*'"),
+                 #'STRING'  :    ('String',  r"'(.|\n)*?'")
+                 'CHAR'          : ('String', r'.'),
+                 'NUMBER'        : ('Int',    r'\d+'),
+                 'NUMBER_INT'    : ('Int',    r'0|[1-9]\d*'),
+                 'NUMBER_DOUBLE' : ('Double', r'\d+\.\d+') }
+    # r"'[^'\\]*(?:\\.[^'\\]*)*'"
+
+    base_def_used = {name : 0 for name in base_def}
+    base_def_used['STRING1'] = -1   # never used
+    base_def_used['STRING2'] = -1
+    base_def_used['STRING3'] = -1
+    base_def_used['STRING4'] = -1
+    base_def_used['NAME'] = -1
+    base_def_used['NEWLINE'] = -1
+
+    import libforgen
+    libforgen.base_def = base_def
+    libforgen.base_def2 = base_def2
+    libforgen.base_def_used = base_def_used
+    libforgen.Dest = 'py'
+
+    syntax_lst = { # this is default comment syntax
+        'crlf'   : ( ' \t\n', [  ] ),
+        'wspace' : ( ' \t',   [  ] ),
+        'no'     : ( '', [] )
+    }
+
+    grmlst, s_sample = GenPython01(mod)
+
     print '# auto generate code, LiuTaoTao\n'
     print 'from lib import *'
-
-    grmlst = GenPython01(mod)
 
     SynName = libforgen.SynName
 

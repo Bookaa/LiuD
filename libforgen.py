@@ -26,6 +26,10 @@ def PythonString(s):
         if '\\' in s and not AnyEscapeChar(s):
             return "r'''%s'''" % s
         return "'''%s'''" % s
+    if '\\' in s and "'" not in s and '\n' not in s:
+        return "r'%s'" % s
+    if '\\' in s and '"' not in s and '\n' not in s:
+        return 'r"%s"' % s
     return str([s])[1:-1]
 
 def AnyEscapeChar(s):
@@ -232,7 +236,11 @@ class Visit_00(LiuD_sample_visitor_01):
         assert False
     def visit_jiap(self, node):
         r1 = node.v1.walkabout(self)
+        if not r1:
+            r1 = node.v1.walkabout(self)
+            pass
         assert len(r1) == 1
+
         r2 = node.v4.walkabout(self)
         if r2 is None:
             return [(r1[0][0] + 'lst', r1[0][1] + '*')]
@@ -253,10 +261,13 @@ class Visit_00(LiuD_sample_visitor_01):
     def visit_LitName(self, node):
         return self.howword(node.n)
     def howword(self, s):
+        if s in base_def2:
+            return [('s','.s')]
         if s in base_def:
-            base_def_used[s] = True
+            if base_def_used[s] == 0:
+                base_def_used[s] = 1
             typdefs, _ = base_def[s]
-            if typdefs in ('String','String2'):
+            if typdefs in ('String','String2','strtype1','strtype2','strtype3','strtype4'):
                 return [('s','.s')]
             if typdefs == 'Int':
                 return [('i','.i')]
@@ -322,7 +333,8 @@ class Visit_00(LiuD_sample_visitor_01):
         return [('b','.b')]
     def visit_basestrn(self, node):
         if isinstance(node.v, LiuD_LitName):
-            base_def_used[node.v.n] = True
+            if base_def_used.get(node.v.n) == 0:
+                base_def_used[node.v.n] = 1
         else:
             return [('s','.s')]
     def visit_inline(self, node):
@@ -346,6 +358,7 @@ class LiudNodeInfo:
         self.protcl = protcl
         self.linecmt = linecmt
         self.blockcmt = blockcomment
+        self.sample_text = ''
 
 class Visit_Gen01(LiuD_sample_visitor_01):
     def __init__(self):
@@ -370,6 +383,14 @@ class Visit_Gen01(LiuD_sample_visitor_01):
     def visit_name_prefix(self, node):
         global SynName
         SynName = node.n
+    def visit_string_def(self, node):
+        global base_def, base_def_used
+        assert node.n1 not in base_def
+        base_def[node.n1] = (node.n2, node.s)
+        base_def_used[node.n1] = 0
+    def visit_sample_text(self, node):
+        self.sample_text = node.s
+
     def visit_stmt_tax(self, node):
         self.lst0.append(node.s)
         self.dic[node.s] = LiudNodeInfo(node, self.cur_syntax, self.cur_protocol, self.linecomment, self.blockcomment)
