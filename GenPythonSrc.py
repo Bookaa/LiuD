@@ -602,12 +602,6 @@ def Word_or_Symbol(s):
         return "handle_NAME('%s')" % s
     return "handle_OpChar(%s)" % PythonString(s)
 
-def To2PythonString(s):
-    if (s[0], s[-1]) == ("'", "'"):
-        s = s[1:-1]
-
-    return PythonString(s)
-
 def IfWordStr(s):
     restr = base_def['NAME'][1] #'[A-Za-z_][A-Za-z0-9_]*'
     lexed = re.compile(restr, re.VERBOSE)
@@ -653,19 +647,20 @@ class Parser(Parser00):
                     continue
                 if (ignoresyntax, linecmt, blockcmt) not in lst_skips:
                     lst_skips.append((ignoresyntax, linecmt, blockcmt))
-            outp.prtln('self.skips = [')
-            for (ignoresyntax, linecmt, blockcmt) in lst_skips:
-                syntax = ignore_lst[ignoresyntax]
-                s1 = PythonString(syntax[0])
-                lsts2 = syntax[1]
-                if linecmt:
-                    lsts2.append('%s.*' % linecmt)
-                if blockcmt:
-                    (lh, rh) = blockcmt
-                    lsts2.append(r'%s(.|\n)*?%s' % (lh, rh))
-                s2 = str(lsts2)
-                outp.prtln('    IgnoreCls(%s, %s),' % (s1, s2))
-            outp.prtln(']')
+            if lst_skips:
+                outp.prtln('self.skips = [')
+                for (ignoresyntax, linecmt, blockcmt) in lst_skips:
+                    syntax = ignore_lst[ignoresyntax]
+                    s1 = PythonString(syntax[0])
+                    lsts2 = syntax[1]
+                    if linecmt:
+                        lsts2.append('%s.*' % linecmt)
+                    if blockcmt:
+                        (lh, rh) = blockcmt
+                        lsts2.append(r'%s(.|\n)*?%s' % (lh, rh))
+                    s2 = str(lsts2)
+                    outp.prtln('    IgnoreCls(%s, %s),' % (s1, s2))
+                outp.prtln(']')
 
         lst3 = [name for name in base_def if base_def_used[name] > 0]
         lst3.sort()
@@ -697,7 +692,7 @@ class Parser(Parser00):
                 outp.prtln('def handle_%s(self):' % name)
                 outp.prtln('s = self.handle_string_Lex(self.lex_%s)' % name, 1)
                 outp.prtln('return Escape(s)', 1)
-            elif typ in ('type00', 'Double'):
+            elif typ in ('type00', 'Double', 'chartype'):
                 outp.prtln('def handle_%s(self):' % name)
                 outp.prtln('return self.handle_Lex(self.lex_%s)' % name, 1)
             else:
@@ -1207,22 +1202,27 @@ def gen_sample_01(grmlst):
                 outp.prtln('node.%s.walkabout(self)' % s, 1)
                 flg = True
                 continue
-            if typ2 in ('i','f','s','b','sq','slst','n','nq','nlst'):
+            if typ2 in ('i','f','s','b','sq','slst','n','nq','nlst','c'):
                 continue
-            if typ in ('.s', '.s?', '.s*'):
+            if typ in ('.s', '.s?', '.s*', '.c', '.c*'):
                 continue
-            assert False
+            assert False, typ
         if not flg:
             outp.prtln('pass')
         outp.up()
 
-def GenPythonSrc(SyntaxIn):
+def GenPythonSrc(sSyntax):
     global base_def, base_def_used, SynName, s_sample, base_def2
     #s_sample = SyntaxIn.s_sample
     #SynName = SyntaxIn.SynName
 
     # sSyntax = 'STRING :: STRING1 | STRING2 | STRING3\n' + SyntaxIn.s_tree
-    sSyntax = SyntaxIn.s_tree
+    # sSyntax = SyntaxIn.s_tree
+
+    if '$$$_sample_is_myself$$$' in sSyntax:
+        sSyntax1 = sSyntax.replace('$$$_sample_is_myself$$$', "'hello world'")
+        s2 = '$liut$\n%s\n$tuil$' % sSyntax1
+        sSyntax = sSyntax.replace('$$$_sample_is_myself$$$', s2)
 
     parser = Parser(sSyntax)
 
@@ -1246,7 +1246,7 @@ def GenPythonSrc(SyntaxIn):
                  #'STRING'        : ('String',  r"'[^'\\]*(?:\\.[^'\\]*)*'"), # "'.*?'"
                  #'STRINGR'       : ('String', r"'[^'\\]*(?:\\.[^'\\]*)*'"),
                  #'STRING'  :    ('String',  r"'(.|\n)*?'")
-                 'CHAR'          : ('String', r'.'),
+                 #'CHAR'          : ('String', r'.'),
                  'NUMBER'        : ('Int',    r'\d+'),
                  'NUMBER_INT'    : ('Int',    r'0|[1-9]\d*'),
                  'NUMBER_DOUBLE' : ('Double', r'\d+\.\d+') }
@@ -1374,6 +1374,8 @@ def gen_Out_02(output_rules, grmlst):
     for nodeinfo in grmlst.iter_syntax():
         (node, arglst, ignoresyntax) = (nodeinfo.node, nodeinfo.arglst, nodeinfo.ign_syntax)
         outp.prtln('def visit_%s(self, node):' % node.s)
+        if node.s == 'set_linecomment':
+            pass
         name = node.s
         outnode = GetOutNode(mod2, name)
         the = Out3_visitor(arglst)
@@ -1429,20 +1431,7 @@ class Out3_visitor:
         #else:
         #    self.outp.prtln('    %s.walkabout(self)' % tem2)
     def visit_oString(self, node):
-        if node.s == 'othersyntax':
-            s33 = '''
-        if node.s1 == 'Python':
-            import Ast_Python
-            the = Ast_Python.Python_out_visitor_01(self.outp)
-            node.v.walkabout(the)
-            self.outp.puts('}')
-            return
-        else:
-            assert False
-            '''
-            self.outp.prtln(s33)
-            return
-        self.outp.prtln('self.outp.puts(%s)' % To2PythonString(node.s))
+        self.outp.prtln('self.outp.puts(%s)' % PythonString(node.s))
     def visit_ooptgroup(self, node):
         arg = self.arglst[self.argno][0]
         self.outp.prtln('if node.%s is not None:' % arg)
@@ -1492,13 +1481,13 @@ class Out3_visitor:
     def visit_oXchoice(self, node):
         arg, typ, typ2 = self.arglst[self.argno]; self.argno += 1
         self.outp.prtln('if node.%s:' % arg)
-        self.outp.prtln('self.outp.puts(%s)' % To2PythonString(node.s1), 1)
+        self.outp.prtln('self.outp.puts(%s)' % PythonString(node.s1), 1)
         self.outp.prtln('else:')
-        self.outp.prtln('self.outp.puts(%s)' % To2PythonString(node.s2), 1)
+        self.outp.prtln('self.outp.puts(%s)' % PythonString(node.s2), 1)
     def visit_oXif(self, node):
         arg, typ, typ2 = self.arglst[self.argno]; self.argno += 1
         self.outp.prtln('if node.%s:' % arg)
-        self.outp.prtln('self.outp.puts(%s)' % To2PythonString(node.s), 1)
+        self.outp.prtln('self.outp.puts(%s)' % PythonString(node.s), 1)
     def visit_oXq(self, node):
         arg,typ,typ2 = self.arglst[self.argno]; self.argno += 1
         self.outp.prtln('if node.%s is not None:' % arg)

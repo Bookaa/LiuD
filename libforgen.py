@@ -22,6 +22,8 @@ class OutP:
         self.fDone = True
 
 def PythonString(s):
+    if s == '\\':
+        return "'\\\\'"
     if len(s) > 60 and '\n' in s:
         if '\\' in s and not AnyEscapeChar(s):
             return "r'''%s'''" % s
@@ -98,7 +100,9 @@ class SmartType:
         if Dest == 'swift':
             if self.typ2 in ('vq','sq','nq'): #.endswith('q'):
                 s += '!'
-        if self.typ2 in ('s','sq', 'n', 'nq', 'i', 'iq', 'f', 'fq', 'b'): #arg.startswith('s'):
+        if self.typ2 in ('s',):
+            return 'self.outp.putss(%s)' % s
+        if self.typ2 in ('c', 'sq', 'n', 'nq', 'i', 'iq', 'f', 'fq', 'b'): #arg.startswith('s'):
             return 'self.outp.puts(%s)' % s
         return '%s.walkabout(self)' % s
 
@@ -267,6 +271,8 @@ class Visit_00(LiuD_sample_visitor_01):
             if base_def_used[s] == 0:
                 base_def_used[s] = 1
             typdefs, _ = base_def[s]
+            if typdefs == 'chartype':
+                return [('c','.c')]
             if typdefs in ('String','String2','strtype1','strtype2','strtype3','strtype4'):
                 return [('s','.s')]
             if typdefs == 'Int':

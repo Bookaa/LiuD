@@ -611,7 +611,7 @@ class LiuD_out_visitor_01:
         self.outp.puts('.string')
         self.outp.puts(node.n1)
         self.outp.puts(node.n2)
-        self.outp.puts(node.s)
+        self.outp.putss(node.s)
     def visit_opt2(self, node):
         self.outp.puts(node.s)
         self.outp.puts('^-')
@@ -665,16 +665,16 @@ class LiuD_out_visitor_01:
         self.outp.puts(')')
     def visit_BoolChoice(self, node):
         self.outp.puts('Bool(')
-        self.outp.puts(node.s1)
+        self.outp.putss(node.s1)
         self.outp.puts(',')
-        self.outp.puts(node.s2)
+        self.outp.putss(node.s2)
         self.outp.puts(')')
     def visit_BoolIf(self, node):
         self.outp.puts('Bool(')
-        self.outp.puts(node.s)
+        self.outp.putss(node.s)
         self.outp.puts(')')
     def visit_ident(self, node):
-        self.outp.puts(node.s)
+        self.outp.putss(node.s)
     def visit_basestrn(self, node):
         node.v.walkabout(self)
         self.outp.lnk()
@@ -741,23 +741,23 @@ class LiuD_out_visitor_01:
     def visit_LitName(self, node):
         self.outp.puts(node.n)
     def visit_LitString(self, node):
-        self.outp.puts(node.s)
+        self.outp.putss(node.s)
     def visit_dot_syntax(self, node):
         self.outp.puts('.syntax')
         self.outp.puts(node.n)
     def visit_set_linecomment(self, node):
         self.outp.puts('.set_linecomment')
-        self.outp.puts(node.s)
+        self.outp.putss(node.s)
     def visit_set_blockcomment(self, node):
         self.outp.puts('.set_blockcomment')
-        self.outp.puts(node.s1)
-        self.outp.puts(node.s2)
+        self.outp.putss(node.s1)
+        self.outp.putss(node.s2)
     def visit_name_prefix(self, node):
         self.outp.puts('.name_prefix')
         self.outp.puts(node.n)
     def visit_sample_text(self, node):
         self.outp.puts('Sample Text =')
-        self.outp.puts(node.s)
+        self.outp.putss(node.s)
     def visit_stmt_inline(self, node):
         self.outp.puts(node.s)
         if node.vargq is not None:
@@ -807,7 +807,7 @@ class LiuD_out_visitor_01:
         self.outp.puts('^*')
         node.v2.walkabout(self)
     def visit_oString(self, node):
-        self.outp.puts(node.s)
+        self.outp.putss(node.s)
     def visit_ooptgroup(self, node):
         self.outp.puts('[')
         for tem1 in node.vlst:
@@ -819,7 +819,7 @@ class LiuD_out_visitor_01:
             tem1.walkabout(self)
         self.outp.puts(')*')
     def visit_oident(self, node):
-        self.outp.puts(node.s)
+        self.outp.putss(node.s)
     def visit_onewline(self, node):
         self.outp.puts('NL')
     def visit_olnk(self, node):
@@ -828,13 +828,13 @@ class LiuD_out_visitor_01:
         self.outp.puts('x*')
     def visit_oXchoice(self, node):
         self.outp.puts('x?(')
-        self.outp.puts(node.s1)
+        self.outp.putss(node.s1)
         self.outp.puts(',')
-        self.outp.puts(node.s2)
+        self.outp.putss(node.s2)
         self.outp.puts(')')
     def visit_oXif(self, node):
         self.outp.puts('x?(')
-        self.outp.puts(node.s)
+        self.outp.putss(node.s)
         self.outp.puts(')')
     def visit_oXq(self, node):
         self.outp.puts('x?')
@@ -1991,6 +1991,8 @@ def Test_Out_LiuD(mod):
     outp.newline()
 
 s_sample_LiuD = r'''
+// LiuD syntax define
+// LiuTaoTao github.com/Bookaa/LiuD
 
 .name_prefix LiuD
 .set_linecomment '\/\/'
@@ -2134,7 +2136,7 @@ Output Rules {
     oX : 'x'
 }
 
-
+Sample Text = 'hello world'
 
 '''
 

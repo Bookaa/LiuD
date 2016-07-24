@@ -4,24 +4,11 @@
 
 
 def GenSource(a1, a2):
-    if a1 == 'Swift':
-        import Syntax_Swift as SyntaxIn
-    elif a1 == 'LiuD':
-        import Syntax_LiuD as SyntaxIn
-    elif a1 == 'Re':
-        import Syntax_Re as SyntaxIn
-    elif a1 == 'Out':
-        import Syntax_Out as SyntaxIn
-    elif a1 == 'Python':
-        import Syntax_Python as SyntaxIn
-    elif a1 == 'LangL':
-        import Syntax_LangL as SyntaxIn
-    elif a1 == 'Z':
-        import Syntax_Z as SyntaxIn
-    elif a1.endswith('.py'):
-        SyntaxIn = __import__(a1[:-3])
-    else:
+    fi = open(a1)
+    if not fi:
         return 0
+    SyntaxIn = fi.read()
+    fi.close()
 
     if a2 == 'py':
         from GenPythonSrc import GenPythonSrc

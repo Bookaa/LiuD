@@ -2,26 +2,6 @@
 
 import re
 
-def tostr_Python_STRING(s):
-    if s is None:
-        return None
-    if (s[0],s[-1]) == ("'","'"):
-        s = s[1:-1]
-    return s
-def tostr_Out_STRING(s):
-    if s is None:
-        return None
-    if (s[0],s[-1]) == ("'","'"):
-        s = s[1:-1]
-    s = s.replace(r'\n','\n')
-    return s
-def tostr_LiuD_STRING(s):
-    if s is None:
-        return None
-    if (s[0],s[-1]) == ("'","'"):
-        s = s[1:-1]
-    s = s.replace(r'\n','\n')
-    return s
 def Escape(s):
     if not s:
         return s
@@ -38,42 +18,13 @@ def Escape(s):
             s0 += c
         elif c == 'n':
             s0 += '\n'
+        elif c == '\\':
+            s0 += '\\'
         else:
+            print 'escape:', c
             assert False
         flg = False
     return s0
-def tostr_LangL_STRING1(s):
-    if s is None:
-        return None
-    if (s[0],s[-1]) == ('"','"'):
-        s = s[1:-1]
-    return s
-def tostr_LangL_STRING2(s):
-    if s and s[0] == '"':
-        return s[1:]
-    return s
-def tostr_LangL_STRING3(s):
-    return s
-def tostr_LangL_STRING4(s):
-    if s and s[-1] == '"':
-        return s[:-1]
-    return s
-def tostr_Swift_STRING1(s):
-    if s is None:
-        return None
-    if (s[0],s[-1]) == ('"','"'):
-        s = s[1:-1]
-    return s
-def tostr_Swift_STRING2(s):
-    if s and s[0] == '"':
-        return s[1:]
-    return s
-def tostr_Swift_STRING3(s):
-    return s
-def tostr_Swift_STRING4(s):
-    if s and s[-1] == '"':
-        return s[:-1]
-    return s
 
 class HowRe:
     def __init__(self, s):
@@ -372,6 +323,9 @@ class OutPrt:
                 self.lst[-1] += s
                 return
         self.lst.append(s)
+    def putss(self, s):
+        s2 = tostr_LiuD(s)
+        self.lst.append(s2)
     def newline(self):
         if not self.lst:
             return
@@ -382,17 +336,8 @@ class OutPrt:
 def PythonString(s):
     return str([s])[1:-1]
 
-#lestr = r'".*?(?=\\\(|")"'
-lestr = '".*?"'
-lestr = r'"([^\\]|\\[^(])*?"'
-lestr = r'".*?(?=\\\()'
-s_sample = r'"I know a is \(a) \"and b is \(b) and c+b=\(c+b)d" dd'
-s_sample = r'"I know a is \-(a) \"and b is \(b) and c+b=\-(c+b)d" dd'
-
-if __name__ == '__main__':
-    import Re2
-
-    HowRe = Re2.HowRe_liud
-
-    the = HowRe(lestr)
-    print the.howmatch(s_sample, 0)
+def tostr_LiuD(s):
+    if '\n' in s:
+        s = s.replace('\n', r'\n')
+        return "'%s'" % s
+    return "'%s'" % s

@@ -1,6 +1,6 @@
-# LiuTaoTao github.com/Bookaa/LiuD
+// LiuD syntax define
+// LiuTaoTao github.com/Bookaa/LiuD
 
-s_tree = r'''
 .name_prefix LiuD
 .set_linecomment '\/\/'
 // this is comment
@@ -143,15 +143,4 @@ Output Rules {
     oX : 'x'
 }
 
-
-'''
-
-s_tree = s_tree + '''
-
-Sample Text = $liut$
-%s
-$tuil$
-
-''' % s_tree
-
-# s_sample = s_tree # describe myself
+Sample Text = $$$_sample_is_myself$$$

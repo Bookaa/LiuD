@@ -1,8 +1,10 @@
-# LiuTaoTao github.com/Bookaa/LiuD
+// LiuD syntax define
+// LiuTaoTao github.com/Bookaa/LiuD
 
-s_tree = '''
 .name_prefix Re
 .syntax -
+
+.string CHAR chartype '.'
 
 Module: stmt ENDMARKER$
 
@@ -59,45 +61,40 @@ item :: ( NodeProceed : '(?<!' items ')' )
         | ( Num01 : ',' NUMBER )
         | LitNumber
 
+Output Rules {
+    Module: x
+    stmt : x ^* '|'
+    items : x*
+    NodeProceed : '(?<!' x ')'
+    IfProceed : '(?<=' x ')'
+    IfNext : '(?=' x ')'
+    IfNotNext : '(?!' x ')'
+    YesOrNo : '(?(' x ')' x ['|' x] ')'
+    RefName : '(?P=' x ')'
+    SetFlags : '(?' x* ')'
+    ZeroOrMoreNoGreedy : x '*?'
+    ZeroOrMore : x '*'
+    OneOrMore : x '+'
+    ZeroOrOne : x '?'
+    NumCtlNoGreedy : x '{' x '}?'
+    WithNumCtl : x '{' x '}'
+    LineLead : '^'
+    LineTail : '$'
+    Dot : '.'
+    OneChar : x
+    Escape : '\\' x
+    NonGroup : '(?:' x ')'
+    NamedGroup : '(?P<' x '>' x? ')'
+    Group : '(' x ')'
+    SetCompl : '[^' x* ']'
+    Set : '[' x* ']'
+    AtoB : x '-' x
+    CharItem : x
+    Num11 : x ',' x
+    Num10 : x ','
+    Num01 : ',' x
+    LitName : x
+    LitNumber : x
+}
 
-'''
-
-Out_self = '''
-Module: x
-stmt : x ^* '|'
-items : x*
-NodeProceed : '(?<!' x ')'
-IfProceed : '(?<=' x ')'
-IfNext : '(?=' x ')'
-IfNotNext : '(?!' x ')'
-YesOrNo : '(?(' x ')' x ['|' x] ')'
-RefName : '(?P=' x ')'
-SetFlags : '(?' x* ')'
-ZeroOrMoreNoGreedy : x '*?'
-ZeroOrMore : x '*'
-OneOrMore : x '+'
-ZeroOrOne : x '?'
-NumCtlNoGreedy : x '{' x '}?'
-WithNumCtl : x '{' x '}'
-LineLead : '^'
-LineTail : '$'
-Dot : '.'
-OneChar : x
-Escape : '\\' x
-NonGroup : '(?:' x ')'
-NamedGroup : '(?P<' x '>' x? ')'
-Group : '(' x ')'
-SetCompl : '[^' x* ']'
-Set : '[' x* ']'
-AtoB : x '-' x
-CharItem : x
-Num11 : x ',' x
-Num10 : x ','
-Num01 : ',' x
-LitName : x
-LitNumber : x
-'''
-
-s_sample = '[A-Za-z_][A-Za-z0-9_]*'
-
-
+Sample Text = '[A-Za-z_][A-Za-z0-9_]*'
