@@ -234,7 +234,7 @@ class Visit_Gen02(LiuD_sample_visitor_01):
             outp.prtln('    if v3 is None:')
             outp.prtln('        break')
             outp.prtln('    %s.append(v3)' % vname)
-            outp.prtln('    sav1 = self.getpos()')
+            outp.prtln('    %s = self.getpos()' % savname)
             self.skipcmt(3)
             outp.prtln('self.setpos(%s)' % savname)
         elif isinstance(node.v, LiuD_basestrn):
@@ -719,8 +719,6 @@ class Parser(Parser00):
             continue
 
         outp.prtln('def handle_%s(self):' % node.s)
-        if node.s == 'choices':
-            pass
         if node.s == 'Module': # and ignoresyntax != '-':
             n = cmtsts.getskipn()
             if n != -1:
@@ -1204,7 +1202,7 @@ def gen_sample_01(grmlst):
                 continue
             if typ2 in ('i','f','s','b','sq','slst','n','nq','nlst','c'):
                 continue
-            if typ in ('.s', '.s?', '.s*', '.c', '.c*'):
+            if typ in ('.s', '.s?', '.s*', '.c', '.c*', '.i?'):
                 continue
             assert False, typ
         if not flg:
