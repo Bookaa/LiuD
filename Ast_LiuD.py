@@ -232,6 +232,14 @@ class LiuD_set_linecomment:
         return visitor.visit_set_linecomment(self)
 
 
+class LiuD_set_comment:
+    def __init__(self, s):
+        self.s = s
+
+    def walkabout(self, visitor):
+        return visitor.visit_set_comment(self)
+
+
 class LiuD_set_blockcomment:
     def __init__(self, s1, s2):
         self.s1 = s1
@@ -445,6 +453,7 @@ class LiuD_sample_visitor_00:
     def visit_LitString(self, node): pass
     def visit_dot_syntax(self, node): pass
     def visit_set_linecomment(self, node): pass
+    def visit_set_comment(self, node): pass
     def visit_set_blockcomment(self, node): pass
     def visit_name_prefix(self, node): pass
     def visit_sample_text(self, node): pass
@@ -542,6 +551,8 @@ class LiuD_sample_visitor_01:
     def visit_dot_syntax(self, node):
         pass
     def visit_set_linecomment(self, node):
+        pass
+    def visit_set_comment(self, node):
         pass
     def visit_set_blockcomment(self, node):
         pass
@@ -747,6 +758,9 @@ class LiuD_out_visitor_01:
         self.outp.puts(node.n)
     def visit_set_linecomment(self, node):
         self.outp.puts('.set_linecomment')
+        self.outp.putss(node.s)
+    def visit_set_comment(self, node):
+        self.outp.puts('.set_comment')
         self.outp.putss(node.s)
     def visit_set_blockcomment(self, node):
         self.outp.puts('.set_blockcomment')
@@ -1458,6 +1472,9 @@ class Parser(Parser00):
         v = self.handle_set_linecomment()
         if v is not None:
             return v
+        v = self.handle_set_comment()
+        if v is not None:
+            return v
         v = self.handle_set_blockcomment()
         if v is not None:
             return v
@@ -1506,6 +1523,18 @@ class Parser(Parser00):
             self.setpos(sav0)
             return None
         return LiuD_set_linecomment(s)
+
+    def handle_set_comment(self):
+        sav0 = self.getpos()
+        if self.handle_OpChar('.set_comment') is None:
+            self.setpos(sav0)
+            return None
+        self.Skip(0)
+        s = self.handle_STRING()
+        if s is None:
+            self.setpos(sav0)
+            return None
+        return LiuD_set_comment(s)
 
     def handle_set_blockcomment(self):
         sav0 = self.getpos()
@@ -2047,6 +2076,7 @@ taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
 stmt :: stmtone NEWLINE$
     stmtone :: ( dot_syntax : '.syntax' (NAME | '-'$) )
         | ( set_linecomment : '.set_linecomment' STRING )
+        | ( set_comment : '.set_comment' STRING )
         | ( set_blockcomment : '.set_blockcomment' STRING STRING )
         | ( name_prefix : '.name_prefix' NAME )
         | output_rules
@@ -2111,6 +2141,7 @@ Output Rules {
     noskip : '-'
     dot_syntax : '.syntax' x
     set_linecomment : '.set_linecomment' x
+    set_comment : '.set_comment' x
     set_blockcomment : '.set_blockcomment' x x
     name_prefix : '.name_prefix' x
     string_def : '.string' x x x

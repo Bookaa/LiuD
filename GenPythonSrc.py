@@ -611,17 +611,17 @@ def IfWordStr(s):
     return False
 
 class CommentsStatus:
-    def __init__(self, lst_skips, ignoresyntax, linecmt, blockcmt):
-        self.all = (lst_skips, ignoresyntax, linecmt, blockcmt)
+    def __init__(self, lst_skips, ignoresyntax, comments):
+        self.all = (lst_skips, ignoresyntax, comments)
 
     def getskipn(self, s=''):
-        (lst_skips, ignoresyntax, linecmt, blockcmt) = self.all
+        (lst_skips, ignoresyntax, comments) = self.all
         if s == '':
             s = ignoresyntax
         ignoresyntax = s
-        if ignoresyntax == '-' and linecmt == '':
+        if ignoresyntax == '-' and comments == []:
             return -1
-        return lst_skips.index((ignoresyntax, linecmt, blockcmt))
+        return lst_skips.index((ignoresyntax, comments))
 
 def GenPython02(grmlst, ignore_lst):
     outp = OutP()
@@ -633,31 +633,26 @@ class Parser(Parser00):
         Parser00.__init__(self, srctxt)
 ''')
         outp.down(); outp.down()
-        if False:
-            for (name,syntax) in ignore_lst.items():
-                s1 = PythonString(syntax[0])
-                s2 = str(syntax[1])
-                outp.prtln('self.ignore_%s = IgnoreCls(%s, %s)' % (name, s1, s2))
-            outp.prtln('')
         if True:
             lst_skips = []
             for nodeinfo in grmlst.iter_all():
-                (node, arglst, ignoresyntax, linecmt, blockcmt) = (nodeinfo.node, nodeinfo.arglst, nodeinfo.ign_syntax, nodeinfo.linecmt, nodeinfo.blockcmt)
-                if (ignoresyntax, linecmt, blockcmt) == ('-', '', None):
+                (node, arglst, ignoresyntax, comments) = (nodeinfo.node, nodeinfo.arglst, nodeinfo.ign_syntax, nodeinfo.comments)
+                if (ignoresyntax, comments) == ('-', []):
                     continue
-                if (ignoresyntax, linecmt, blockcmt) not in lst_skips:
-                    lst_skips.append((ignoresyntax, linecmt, blockcmt))
+                if (ignoresyntax, comments) not in lst_skips:
+                    lst_skips.append((ignoresyntax, comments))
             if lst_skips:
                 outp.prtln('self.skips = [')
-                for (ignoresyntax, linecmt, blockcmt) in lst_skips:
+                for (ignoresyntax, comments) in lst_skips:
                     syntax = ignore_lst[ignoresyntax]
                     s1 = PythonString(syntax[0])
                     lsts2 = syntax[1]
-                    if linecmt:
-                        lsts2.append('%s.*' % linecmt)
-                    if blockcmt:
-                        (lh, rh) = blockcmt
-                        lsts2.append(r'%s(.|\n)*?%s' % (lh, rh))
+                    lsts2.extend(comments)
+                    #for s7 in linecmt:
+                    #    lsts2.append('%s.*' % s7)
+                    #if blockcmt:
+                    #    (lh, rh) = blockcmt
+                    #    lsts2.append(r'%s(.|\n)*?%s' % (lh, rh))
                     s2 = str(lsts2)
                     outp.prtln('    IgnoreCls(%s, %s),' % (s1, s2))
                 outp.prtln(']')
@@ -702,8 +697,8 @@ class Parser(Parser00):
                 outp.prtln('return self.handle_Lex(self.lex_%s)' % name, 1)
 
     for nodeinfo in grmlst.iter_all():
-        (node, arglst, ignoresyntax, linecmt, blockcmt) = (nodeinfo.node, nodeinfo.arglst, nodeinfo.ign_syntax, nodeinfo.linecmt, nodeinfo.blockcmt)
-        cmtsts = CommentsStatus(lst_skips, ignoresyntax, linecmt, blockcmt)
+        (node, arglst, ignoresyntax, comments) = (nodeinfo.node, nodeinfo.arglst, nodeinfo.ign_syntax, nodeinfo.comments)
+        cmtsts = CommentsStatus(lst_skips, ignoresyntax, comments)
         print
         if node.s == 'output_rules':
             pass
@@ -758,7 +753,7 @@ class Parser(Parser00):
             assert visit.argno == len(arglst)
 
 def PrtStmtInline(node, arglst, grmlst, cmtsts):
-    (lst_skips, ignoresyntax, linecmt, blockcmt) = cmtsts.all
+    (lst_skips, ignoresyntax, comments) = cmtsts.all
     skipn = cmtsts.getskipn()
 
     outp = OutP(1)
@@ -997,7 +992,7 @@ def PrtNoArg(node, grmlst, cmtsts):
 
 
 def PrtOpt2(node, arglst, grmlst, cmtsts):
-    (lst_skips, ignoresyntax, linecmt, blockcmt) = cmtsts.all
+    #(lst_skips, ignoresyntax, linecmt, blockcmt) = cmtsts.all
     skipn = cmtsts.getskipn()
 
     outp = OutP(1)

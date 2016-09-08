@@ -54,6 +54,7 @@ taxvalue :: ( opt2(s,vlst*) : NAME '^-' '(' strings+ ')' )
 stmt :: stmtone NEWLINE$
     stmtone :: ( dot_syntax : '.syntax' (NAME | '-'$) )
         | ( set_linecomment : '.set_linecomment' STRING )
+        | ( set_comment : '.set_comment' STRING )
         | ( set_blockcomment : '.set_blockcomment' STRING STRING )
         | ( name_prefix : '.name_prefix' NAME )
         | output_rules
@@ -118,6 +119,7 @@ Output Rules {
     noskip : '-'
     dot_syntax : '.syntax' x
     set_linecomment : '.set_linecomment' x
+    set_comment : '.set_comment' x
     set_blockcomment : '.set_blockcomment' x x
     name_prefix : '.name_prefix' x
     string_def : '.string' x x x
@@ -144,3 +146,7 @@ Output Rules {
 }
 
 Sample Text = $$$_sample_is_myself$$$
+
+// try support assignm : (Name0 '=')+ value
+// try support nameq :: name '='
+// how to match 'a = b' but not ends with '=' ?
