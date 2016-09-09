@@ -100,6 +100,8 @@ class SmartType:
         if Dest == 'swift':
             if self.typ2 in ('vq','sq','nq'): #.endswith('q'):
                 s += '!'
+        if self.typ in ('.s1',):
+            return 'self.outp.puts(%s)' % s
         if self.typ2 in ('s',):
             return 'self.outp.putss(%s)' % s
         if self.typ2 in ('c', 'sq', 'n', 'nq', 'i', 'iq', 'f', 'fq', 'b'): #arg.startswith('s'):
@@ -156,7 +158,7 @@ class Visit_00(LiuD_sample_visitor_01):
     def visit_opt2(self, node):
         r = self.howword(node.s)
 
-        return r + [('s','.s')] + r
+        return r + [('s','.s1')] + r
     def visit_optgroup(self, node):
         r0 = None
         for v in node.vlst:
@@ -342,7 +344,7 @@ class Visit_00(LiuD_sample_visitor_01):
             if base_def_used.get(node.v.n) == 0:
                 base_def_used[node.v.n] = 1
         else:
-            return [('s','.s')]
+            return [('s','.s1')]
     def visit_inline(self, node):
         return [('v', node.v.s)]
     def visit_OtherSyntax(self, node):

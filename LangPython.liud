@@ -1,0 +1,40 @@
+// LiuD syntax define
+// LiuTaoTao github.com/Bookaa/LiuD
+
+.name_prefix Py
+.set_linecomment '\/\/'
+// this is comment
+.set_blockcomment '/\*' '\*/'
+/* comment again */
+
+.syntax wspace
+
+
+.syntax crlf
+Module(vlst*) : stmt* ENDMARKER$
+
+stmt :: assign
+
+assign : DT? NAME '=' value
+valuei : NUMBER_INT
+values : STRING4
+value0 :: valuei | values
+value : value0 ^- ('*' '+')
+
+DT : ('float' | 'color' | 'complex' | 'int' | 'bool' | 'hyper')$
+
+Output Rules {
+    Module : (x NL)*
+    assign : x? x '=' x
+    valuei : x
+    values : x
+    value : x x x
+    DT : x
+}
+
+Sample Text = $liud$
+
+a = 'hello'
+int b = 3 + 2 * 5 + 'good'
+
+$duil$

@@ -685,7 +685,7 @@ class LiuD_out_visitor_01:
         self.outp.putss(node.s)
         self.outp.puts(')')
     def visit_ident(self, node):
-        self.outp.putss(node.s)
+        self.outp.puts(node.s)
     def visit_basestrn(self, node):
         node.v.walkabout(self)
         self.outp.lnk()
@@ -833,7 +833,7 @@ class LiuD_out_visitor_01:
             tem1.walkabout(self)
         self.outp.puts(')*')
     def visit_oident(self, node):
-        self.outp.putss(node.s)
+        self.outp.puts(node.s)
     def visit_onewline(self, node):
         self.outp.puts('NL')
     def visit_olnk(self, node):

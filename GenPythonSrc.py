@@ -978,7 +978,7 @@ def PrtSerie(nodelst, arglst, outp, cur_syntax):
 
 
 def PrtNoArg(node, grmlst, cmtsts):
-    (lst_skips, ignoresyntax, linecmt, blockcmt) = cmtsts.all
+    (lst_skips, ignoresyntax, comments) = cmtsts.all
     outp = OutP(2)
     visit = Visit_Gen02(ignoresyntax, [], grmlst)
     visit.cmtsts = cmtsts
@@ -1195,9 +1195,9 @@ def gen_sample_01(grmlst):
                 outp.prtln('node.%s.walkabout(self)' % s, 1)
                 flg = True
                 continue
-            if typ2 in ('i','f','s','b','sq','slst','n','nq','nlst','c'):
+            if typ2 in ('i','f','s','s1','b','sq','slst','n','nq','nlst','c'):
                 continue
-            if typ in ('.s', '.s?', '.s*', '.c', '.c*', '.i?'):
+            if typ in ('.s', '.s1','.s1?','.s?', '.s*', '.c', '.c*', '.i?'):
                 continue
             assert False, typ
         if not flg:
